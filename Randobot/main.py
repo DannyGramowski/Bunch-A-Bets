@@ -1,6 +1,7 @@
 import socket
+import requests
 
-def main():
+def create_websocket():
     host = '127.0.0.1'  # Must match the server's IP
     port = 8080         # Must match the server's port
 
@@ -21,6 +22,13 @@ def main():
 
     finally:
         client_socket.close()
+
+def register():
+    req = requests.post('http://localhost:5000/register?name=randobot')
+    print(req.content)
+
+def main():
+    register()
 
 if __name__ == "__main__":
     main()
