@@ -12,9 +12,10 @@ def create_websocket(port):
         # Connect to the server
         client_socket.connect((host, port))
         print("Connected to server!")
-
+        response = client_socket.recv(100)
+        print('response', response)
         # Optional: send data
-        message = "Hello from Python client!"
+        message = json.dumps({'womp': 'womp'})
         client_socket.sendall(message.encode('utf-8'))
 
     except ConnectionRefusedError:
