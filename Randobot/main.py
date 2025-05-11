@@ -1,9 +1,9 @@
 import socket
 import requests
+import json
 
-def create_websocket():
+def create_websocket(port):
     host = '127.0.0.1'  # Must match the server's IP
-    port = 8080         # Must match the server's port
 
     # Create a socket object
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -25,7 +25,11 @@ def create_websocket():
 
 def register():
     req = requests.post('http://localhost:5000/register?name=randobot')
-    print(req.content)
+    data = json.loads(req.text)
+    print(data)
+
+    create_websocket(data['portNumber'])
+
 
 def main():
     register()

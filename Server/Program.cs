@@ -9,7 +9,8 @@ class main {
         // Deck deck = new Deck();
         //
         // Console.WriteLine(deck);
-        HttpServer.run(Register); //blocking call
+        // HttpServer.Run(Register); //blocking call
+        Epic epic = new Epic();//blocking
     }
 
     private static (int, int) Register(string name) {

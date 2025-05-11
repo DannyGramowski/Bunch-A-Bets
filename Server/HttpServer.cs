@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using System.Net.Sockets;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Server;
 
@@ -8,43 +10,54 @@ public class HttpServer {
     // private Func<string, bool> _registerBot;
     
     /**
+     * This is a blocking call
      * registerBot: function that takes in string name and returns tuple of (id, portNumber)
      */
-    public static void run(Func<string, (int, int)> registerBot) {
-        var builder = WebApplication.CreateBuilder();
+    public static void Run(List<Bot> tourneyBots) {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
+            Args = new []{$"ASPNETCORE_URLS={ServerUtils.IP}:5000"},
+            ApplicationName = "HttpRegisterServer",
+            ContentRootPath = Directory.GetCurrentDirectory(),
+            WebRootPath = "wwwroot",
+        });
         var app = builder.Build();
         
         app.MapPost("/register", (HttpRequest req) => {
-            string name = req.Query["name"];
+            string? name = req.Query["name"];
             
-            if (string.IsNullOrEmpty(name))
-            {
-                return Results.BadRequest(new { error = "Name is required" });
-            }
-            
-            var result = registerBot.Invoke(name);
-            if (result.Item1 == -1) {
-                Console.WriteLine("not found");
-                return Results.NotFound();
-            }
+            if (string.IsNullOrEmpty(name)) return Results.BadRequest(new { error = "Name is required" });
 
-            var data = new { id = result.Item1, portNnumber = result.Item2 };
-                Console.WriteLine("good, ", data);
+            int botId = tourneyBots.Count;
+            int portNumber = GetOpenPort();
+
+            lock (tourneyBots) {
+                tourneyBots.Add(new Bot(botId, portNumber));
+            }
+            
+            var data = new { id = tourneyBots.Count, portNumber = portNumber };
             return Results.Json(data);
-        });    
+        });
+
+        app.MapDelete("/register", (HttpRequest req) => {
+            string? idStr = req.Query["id"];
+            
+            if (string.IsNullOrEmpty(idStr)) return Results.BadRequest(new { error = "id is required" });
+            int id = int.Parse(idStr);
+
+            Bot botToRemove = tourneyBots.Find(bot => bot.ID == id) ?? null;
+            if (botToRemove == null) return Results.BadRequest(new { error = "Bot not found" });
+            tourneyBots.Remove(botToRemove);
+            return Results.Ok();
+        });
         
         app.Run();
     }
 
-    // private IResult Register(string name) {
-    //     return Results.Ok($"Bot '{name}' registered.");
-    //
-    // }
+    private static int GetOpenPort() {
+        var listener = new TcpListener(IPAddress.Loopback, 0); // Port 0 = let OS assign
+        listener.Start();
+        int port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        listener.Stop();
+        return port;    
+    }
 }
-
-// var builder = WebApplication.CreateBuilder(args);
-// var app = builder.Build();
-//
-// app.MapGet("/", () => "Hello World!");
-//
-// app.Run();
