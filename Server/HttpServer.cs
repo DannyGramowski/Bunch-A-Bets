@@ -29,7 +29,7 @@ public class HttpServer {
 
             int botId = tourneyBots.Count;
             int portNumber = GetOpenPort();
-            Bot newBot = new Bot(botId, portNumber, name);
+            Bot newBot = new Bot(botId, portNumber, name, 5.00f);
             
             lock (tourneyBots) {
                 tourneyBots.Add(newBot);

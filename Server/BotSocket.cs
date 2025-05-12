@@ -90,7 +90,7 @@ public class BotSocket {
         _stream.Flush();
     }
 
-    private Json ReceiveMessage() {
+    public Json ReceiveMessage() {
         string? json = null;
         try {
 
