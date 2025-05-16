@@ -14,8 +14,10 @@ public class Bot {
     private string _name;
     private float _bank;
     private BotGameData _gameData;
+    public DateTime lastChatTime;
     
-    public Bot(int id, int port, string name, float startingBank) {
+    public Bot(int id, int port, string name, float startingBank)
+    {
         _socket = new BotSocket(port);
         _id = id;
         _name = name;
@@ -52,7 +54,9 @@ public class Bot {
     
     public bool HasMessageReceived() => _socket.HasMessageReceived();
 
-    public Dictionary<string, string> ToDictionary() {
+
+    public Dictionary<string, string> ToDictionary()
+    {
         return new Dictionary<string, string>() {
             {"id", ID.ToString()},
             {"name", _name},
@@ -61,6 +65,7 @@ public class Bot {
             {"pot_value", _gameData.PotValue.ToString()}
         };
     }
+    
     
     public static string SerializeBotsList(List<Bot> bots) {
         return JsonSerializer.Serialize(bots.Select(bot => bot.ToDictionary()).ToArray());
