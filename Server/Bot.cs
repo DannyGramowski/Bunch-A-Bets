@@ -7,12 +7,12 @@ public class Bot {
     public string Name => _name;
     public BotGameData GameData => _gameData;
     
+    public float Bank;
     
     private BotSocket _socket;
     
     private int _id; //sequential value set based on number of players registered. Starts at 1.
     private string _name;
-    private float _bank;
     private BotGameData _gameData;
     public DateTime lastChatTime;
     
