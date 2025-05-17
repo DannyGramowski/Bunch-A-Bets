@@ -55,6 +55,7 @@ public class Game {
     private int _handNumber;
     private RoundStage _roundStage = RoundStage.PreFlop;
     private float _totalPot = 0;
+    private float _highestBidValue = 0;
 
     private static int _idCounter = 0;
 
@@ -104,7 +105,7 @@ public class Game {
     }
 
     private void PlayRound() {
-        float highest_bid_value = 0;
+        _highestBidValue = 0;
 
         foreach (Bot bot in _bots) {
             bot.GameData.NewRound();
@@ -172,29 +173,33 @@ public class Game {
     /// <param name="raiseAmount">If action type is call, raiseAmount must be set to highest_pot_value</param>
     /// <param name="bot"></param>
     /// <returns>The amount of the players potValue. Most of the time this will equal raise amount but if the player is all in it will be that value. If the player folds, this value will be 0</returns>
-    private float TakeAction(ActionType actionType, float raiseAmount, Bot bot) {
-        float result = 0;
+    private bool TakeAction(ActionType actionType, float raiseAmount, Bot bot) {
         BotGameData data = bot.GameData;
 
         if (actionType == ActionType.Fold) {
             data.RoundState = BotRoundState.Folded;
-            result = 0;
         } else {
+            if (actionType == ActionType.Call) {
+                data.RoundState = BotRoundState.Called;
+                raiseAmount = _highestBidValue;
+            } else {
+                if (raiseAmount < _highestBidValue) {
+                    SendErrorMessage(bot, ErrorType.InvalidInput);
+                    return false;
+                }
+
+                data.RoundState = BotRoundState.Raised;
+                _highestBidValue = raiseAmount;
+            }
+
             if (FloatCompare(bot.Bank, raiseAmount) == -1) {
                 data.RoundState = BotRoundState.AllIn;
-                result = bot.Bank;
-            } else {
-                result = raiseAmount;
-                if (actionType == ActionType.Call) {
-                    data.RoundState = BotRoundState.Called;
-                } else {
-                    data.RoundState = BotRoundState.Raised;
-                }
+                raiseAmount = bot.Bank;
             }
-            
-            bot.Bank -= result;
-            data.PotValue = result;
-            _totalPot += result;
+
+            bot.Bank -= raiseAmount;
+            data.PotValue = raiseAmount;
+            _totalPot += raiseAmount;
         }
 
         //set action take
@@ -222,7 +227,7 @@ public class Game {
             {"action_type", ActionTypeExtensions.ToActionString(actionType)},
             {"raise_amount", raiseAmount.ToString()}
         });
-        return result;
+        return true;
     }
 
     private void SendChat(string message, Bot bot)
@@ -346,8 +351,10 @@ public class Game {
                 return false;
             }
         }
-        TakeAction(actionType, raiseAmount, bot);
-        return true;
+        // if (actionType == ActionType.Call) {
+        //     raiseAmount = 
+        // }
+        return TakeAction(actionType, raiseAmount, bot);
     }
 
     private void SendErrorMessage(Bot bot, ErrorType error) {
