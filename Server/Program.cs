@@ -4,7 +4,7 @@ using System.Net;
 using System;
 using Server;
 
-class main {
+class Program {
     public static void Main() {
         // Deck deck = new Deck();
         //

@@ -3,7 +3,7 @@
 public struct BotGameData {
     public List<Card> Cards;
     public BotRoundState RoundState;
-    public float PotValue;
+    public int PotValue;
 
     public void NewHand(List<Card> cards) {
         if(cards.Count != 2) Console.Error.WriteLine("Invalid number of cards");

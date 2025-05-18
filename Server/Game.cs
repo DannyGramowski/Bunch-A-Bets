@@ -47,6 +47,9 @@ public class Game {
     private const int CHAT_TIMEOUT_MS = 5 * 1000;
     private const int ACTION_TIMEOUT_MS = 3 * 1000;
     private const int ACTION_MIN_TIMEOUT_MS = 1 * 1000;
+    private const int BIG_BLIND = 10;
+    private const int SMALL_BLIND = 5;
+
 
     private List<Bot> _bots;
     private Deck _deck;
@@ -54,8 +57,8 @@ public class Game {
     private int _gameId;
     private int _handNumber;
     private RoundStage _roundStage = RoundStage.PreFlop;
-    private float _totalPot = 0;
-    private float _highestBidValue = 0;
+    private int _totalPot = 0;
+    private int _highestBidValue = 0;
 
     private static int _idCounter = 0;
 
@@ -64,23 +67,28 @@ public class Game {
     /**
      * bots: need to add in random order
      */
-    public Game(List<Bot> bots)
-    {
-        if (bots.Count < 2 || bots.Count > 6)
-        {
+    public Game(List<Bot> bots) {
+        if (bots.Count < 2 || bots.Count > 6) {
             Console.Error.WriteLine("Invalid number of bots. must be between 2 and 6.");
         }
 
         _bots = bots;
         _gameId = _idCounter;
         _idCounter++;
+        _deck = new Deck();
     }
 
     public void PlayGame() {
         _logs = new List<string>();
-        for (int i = 0; i < _bots.Count; i++)
-        {
+        for (int i = 0; i < _bots.Count; i++) {//TODO is this correct. This doesn't guarentee 6 games
+        
             PlayHand();
+
+            //move order of players
+            Bot firstPlayer = _bots[0];
+            _bots.RemoveAt(0);
+            _bots.Add(firstPlayer);
+            _handNumber++;
         }
 
     }
@@ -91,60 +99,86 @@ public class Game {
             bot.GameData.NewHand(new List<Card>() { _deck.DrawCard(), _deck.DrawCard() });
         }
 
-        //big and small blinds
+        //clear bot pots and reset round states for those still playing. Clears from any previous hands. This is probably redundant
+        foreach (Bot bot in _bots) {
+            bot.GameData.NewRound();
+        }
 
-        //play all rounds
+
+        _bots[-1].Bet(BIG_BLIND);
+        _bots[-2].Bet(SMALL_BLIND);
+
+        PlayRound(); //initial round no cards
+
+        _centerCards.Add(_deck.DrawCard());
+        _centerCards.Add(_deck.DrawCard());
+        _centerCards.Add(_deck.DrawCard());
+        //deal 3 cards
+
+        PlayRound(); //Flop
+
+        _centerCards.Add(_deck.DrawCard());
+        //deal 1 card
+
+        PlayRound(); //Turn
+
+        _centerCards.Add(_deck.DrawCard());
+        //deal 1 card
+
+        PlayRound(); //River
+
 
         //showdown
-
-        //move order of player
-        Bot firstPlayer = _bots[0];
-        _bots.RemoveAt(0);
-        _bots.Add(firstPlayer);
-        _handNumber++;
     }
 
     private void PlayRound() {
         _highestBidValue = 0;
 
-        foreach (Bot bot in _bots) {
-            bot.GameData.NewRound();
-        }
 
         // TODO Really, this should be a while true and keep going until the bets are set. Also probably needs some more logic for skipping bots who can't bet
         //while all bots are not either folded, all in, or their be meets the pot bet
+        bool continueRound = true;
+        while (continueRound) {
+            continueRound = false;
+            foreach (Bot bot in _bots) {
+                //If the bot has played previous but someone after raised, they get another chance to call, raise or fold
+                if (!(bot.GameData.RoundState == BotRoundState.NotPlayed || (bot.GameData.StillBidding() && bot.GameData.PotValue != _highestBidValue))) continue;
+                continueRound = true;
+
+                if (bot.Bank == 0) {
+                    TakeAction(ActionType.Fold, 0, bot);
+                    continue;
+                }
+
+                var logData = GetBotRequestActionData(bot);
+                logData["hand"] = ""; //sanitize out hand data from logs
+                WriteLog(bot, logData);
+
+                bot.SendMessage(GetBotRequestActionData(bot));
+
+                DateTime startClock = DateTime.Now;
+                while (true) {
+                    bool actionTaken = GetAnyMessages(bot);
+                    if (actionTaken) { break; }
+                    if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_TIMEOUT_MS)) {
+                        TakeAction(ActionType.Fold, 0, bot); // womp womp
+                        break;
+                    }
+                    // TODO consider adding a brief wait here
+                }
+                // wait off remainder of time
+                while (true) {
+                    if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_MIN_TIMEOUT_MS)) {
+                        break;
+                    }
+                    Thread.Sleep(10);
+                }
+            }
+        }
+
+        //clear bot pots and reset round states for those still playing
         foreach (Bot bot in _bots) {
-            //
-            if (bot.GameData.RoundState != BotRoundState.NotPlayed) continue;
-
-            if (FloatCompare(bot.Bank, 0) == 0) {
-                TakeAction(ActionType.Fold, 0, bot);
-                continue;
-            }
-
-            var logData = GetBotRequestActionData(bot);
-            logData["hand"] = ""; //sanitize out hand data from logs
-            WriteLog(bot, logData);
-
-            bot.SendMessage(GetBotRequestActionData(bot));
-
-            DateTime startClock = DateTime.Now;
-            while (true) {
-                bool actionTaken = GetAnyMessages(bot);
-                if (actionTaken) { break; }
-                if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_TIMEOUT_MS)) {
-                    TakeAction(ActionType.Fold, 0, bot); // womp womp
-                    break;
-                }
-                // TODO consider adding a brief wait here
-            }
-            // wait off remainder of time
-            while (true) {
-                if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_MIN_TIMEOUT_MS)) {
-                    break;
-                }
-                Thread.Sleep(10);
-            }
+            bot.GameData.NewRound();
         }
     }
 
@@ -166,14 +200,7 @@ public class Game {
         return isResolved;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="actionType"></param>
-    /// <param name="raiseAmount">If action type is call, raiseAmount must be set to highest_pot_value</param>
-    /// <param name="bot"></param>
-    /// <returns>The amount of the players potValue. Most of the time this will equal raise amount but if the player is all in it will be that value. If the player folds, this value will be 0</returns>
-    private bool TakeAction(ActionType actionType, float raiseAmount, Bot bot) {
+    private bool TakeAction(ActionType actionType, int raiseAmount, Bot bot) {
         BotGameData data = bot.GameData;
 
         if (actionType == ActionType.Fold) {
@@ -192,7 +219,7 @@ public class Game {
                 _highestBidValue = raiseAmount;
             }
 
-            if (FloatCompare(bot.Bank, raiseAmount) == -1) {
+            if (bot.Bank < raiseAmount) {
                 data.RoundState = BotRoundState.AllIn;
                 raiseAmount = bot.Bank;
             }
@@ -225,7 +252,7 @@ public class Game {
         //add in new bot state and new bot pot
         WriteLog(bot, new Json() {
             {"action_type", ActionTypeExtensions.ToActionString(actionType)},
-            {"raise_amount", raiseAmount.ToString()}
+            {"raise_amount", raiseAmount.ToString()},
         });
         return true;
     }
@@ -256,20 +283,6 @@ public class Game {
 
     private void WriteLog(Bot bot, Json data) {
         WriteLog(bot, JsonSerializer.Serialize(data));
-    }
-
-    /// <summary>
-    /// Compares floats to 2 digits of precision.
-    /// </summary>
-    /// <param name="f1"></param>
-    /// <param name="f2"></param>
-    /// <returns>-1 f1 < f2, 0 if f1 == f2, 1 if f1 > f2 if </returns>
-    private int FloatCompare(float f1, float f2) {
-        var diff = Math.Truncate((f1 * 100) - (f2 * 100));
-        if (diff == 0d) {
-            return 0;
-        }
-        return (int) Math.Round(Math.Abs(diff) / diff);
     }
 
     private void SendLogs(Bot bot) {
@@ -333,13 +346,13 @@ public class Game {
             return false;
         }
 
-        float raiseAmount = 0;
+        int raiseAmount = 0;
         if (actionType == ActionType.Raise) {
             if (!response.ContainsKey("raise_amount")) {
                 SendErrorMessage(bot, ErrorType.BadActionType);
                 return false;
             }
-            if (!float.TryParse(response["raise_amount"], NumberStyles.Number, CultureInfo.InvariantCulture, out raiseAmount)) {
+            if (!int.TryParse(response["raise_amount"], NumberStyles.Number, CultureInfo.InvariantCulture, out raiseAmount)) {
                 SendErrorMessage(bot, ErrorType.BadValue);
                 return false;
             }

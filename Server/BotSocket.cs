@@ -12,9 +12,9 @@ using Json = Dictionary<string, string>;
 
 public class BotSocket {
     
-    private TcpListener _listener = null;
-    private TcpClient _client = null;
-    private Stream _stream = null;
+    private TcpListener? _listener;
+    private TcpClient? _client;
+    private Stream? _stream;
     private int _port;
 
     private Queue<Json> _incomingMessages = new();
@@ -31,7 +31,7 @@ public class BotSocket {
         }
     }
     
-    public bool Connected => _stream != null && _client.Connected;
+    public bool Connected => _stream != null && (_client?.Connected ?? false);
 
     
     public void SendMessage(Json message) {
@@ -86,6 +86,7 @@ public class BotSocket {
     private void SendMessageHelper(Json message) {
         string json = JsonSerializer.Serialize(message);
         byte[] data = Encoding.UTF8.GetBytes(json + "\n");
+        if (_stream == null) return;
         _stream.Write(data, 0, data.Length);
         _stream.Flush();
     }
@@ -98,7 +99,7 @@ public class BotSocket {
             json = reader.ReadLine();
 
             if (json is null) {
-                return new Dictionary<string, string>();
+                return new Json();
             }
 
             return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new();

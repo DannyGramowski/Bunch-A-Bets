@@ -7,7 +7,7 @@ public class Bot {
     public string Name => _name;
     public BotGameData GameData => _gameData;
     
-    public float Bank;
+    public int Bank;
     
     private BotSocket _socket;
     
@@ -16,23 +16,35 @@ public class Bot {
     private BotGameData _gameData;
     public DateTime lastChatTime;
     
-    public Bot(int id, int port, string name, float startingBank)
-    {
+    public Bot(int id, int port, string name, int startingBank) {
         _socket = new BotSocket(port);
         _id = id;
         _name = name;
+        Bank = startingBank;
         Console.WriteLine($"Bot ID: {_id}, Bot Port: {port}, Bot Name: {_name}");
     }
 
-    public override int GetHashCode() {
-        return ID;
-    }
-
-    public override bool Equals(object? obj) {
-        if (obj is Bot other) {
-            return other.ID == ID;
+    /// <summary>
+    /// Subtracts the amount if able to. Otherwise marks the bot as all in and sets bank to 0
+    /// </summary>
+    /// <param name="amount"></param>
+    /// <returns>
+    ///     True if the entire went through. False if they went all in. To get the amount they went all in, check GameData.PotValue
+    /// </returns>
+    public bool Bet(int amount) {
+        if (amount > Bank) {
+            amount = Bank;
+            Bank = 0;
+            _gameData.PotValue = amount;
+            _gameData.RoundState = BotRoundState.AllIn;
+            
+            return false;
         }
-        return false;
+
+        Bank -= amount;
+        _gameData.PotValue = amount;
+
+        return true;
     }
 
     public void SendMessage(Dictionary<string, string> message) {
@@ -55,15 +67,25 @@ public class Bot {
     public bool HasMessageReceived() => _socket.HasMessageReceived();
 
 
-    public Dictionary<string, string> ToDictionary()
-    {
+    public Dictionary<string, string> ToDictionary() {
         return new Dictionary<string, string>() {
             {"id", ID.ToString()},
             {"name", _name},
-            {"bank", _bank.ToString()},
+            {"bank", Bank.ToString()},
             {"state", ((int)_gameData.RoundState).ToString()},
             {"pot_value", _gameData.PotValue.ToString()}
         };
+    }
+
+    public override int GetHashCode() {
+        return ID;
+    }
+
+    public override bool Equals(object? obj) {
+        if (obj is Bot other) {
+            return other.ID == ID;
+        }
+        return false;
     }
     
     

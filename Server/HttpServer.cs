@@ -29,7 +29,7 @@ public class HttpServer {
 
             int botId = tourneyBots.Count;
             int portNumber = GetOpenPort();
-            Bot newBot = new Bot(botId, portNumber, name, 5.00f);
+            Bot newBot = new Bot(botId, portNumber, name, Epic.STARTING_BANK);
             
             lock (tourneyBots) {
                 tourneyBots.Add(newBot);
