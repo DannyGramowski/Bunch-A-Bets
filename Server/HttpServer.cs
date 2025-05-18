@@ -8,40 +8,40 @@ namespace Server;
 public class HttpServer {
     // private WebApplication _app;
     // private Func<string, bool> _registerBot;
-    
+
     /**
      * This is a blocking call
      * registerBot: function that takes in string name and returns tuple of (id, portNumber)
      */
     public static void Run(List<Bot> tourneyBots) {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
-            Args = new []{$"ASPNETCORE_URLS={ServerUtils.IP}:5000"},
+            Args = new[] { $"ASPNETCORE_URLS={ServerUtils.IP}:5000" },
             ApplicationName = "HttpRegisterServer",
             ContentRootPath = Directory.GetCurrentDirectory(),
             WebRootPath = "wwwroot",
         });
         var app = builder.Build();
-        
+
         app.MapPost("/register", (HttpRequest req) => {
             string? name = req.Query["name"];
-            
+
             if (string.IsNullOrEmpty(name)) return Results.BadRequest(new { error = "Name is required" });
 
             int botId = tourneyBots.Count;
             int portNumber = GetOpenPort();
             Bot newBot = new Bot(botId, portNumber, name, Epic.STARTING_BANK);
-            
+
             lock (tourneyBots) {
                 tourneyBots.Add(newBot);
             }
-            
+
             var data = new { id = tourneyBots.Count, portNumber = portNumber };
             return Results.Json(data);
         });
 
         app.MapDelete("/register", (HttpRequest req) => {
             string? idStr = req.Query["id"];
-            
+
             if (string.IsNullOrEmpty(idStr)) return Results.BadRequest(new { error = "id is required" });
             int id = int.Parse(idStr);
 
@@ -50,7 +50,7 @@ public class HttpServer {
             tourneyBots.Remove(botToRemove);
             return Results.Ok();
         });
-        
+
         app.Run();
     }
 
@@ -59,6 +59,6 @@ public class HttpServer {
         listener.Start();
         int port = ((IPEndPoint)listener.LocalEndpoint).Port;
         listener.Stop();
-        return port;    
+        return port;
     }
 }

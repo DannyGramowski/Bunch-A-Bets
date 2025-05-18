@@ -10,9 +10,12 @@ public class Epic {
     public Epic() { 
         new Thread(() => HttpServer.Run(_bots)).Start();
 
+        Thread.Sleep(2000);
+        RandobotService.CreateRandobot();
+
         while (true) {
             lock (_bots) {
-                
+
                 //need to detect start game from standard in to actuall start the game after everyone has registered
                 //probably wait until both games are finished before starting new ones after the epic has begun
                 foreach (Bot bot in _bots) {
