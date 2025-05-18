@@ -31,6 +31,10 @@ def register():
 
     create_websocket(data['portNumber'])
 
+    #infinite loop to keep the window open when created by c#
+    while True:
+        ...
+
 
 def main():
     register()

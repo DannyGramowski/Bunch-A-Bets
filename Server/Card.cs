@@ -25,6 +25,10 @@ public class Card {
         return new Dictionary<string, string>() {{"value", Value}, {"suit", Suit}};
     }
 
+    public int GetNumericValue() {
+        return Array.IndexOf(CARD_VALUES, Value) + 2;
+    }
+
     public static string SerializeCardList(List<Card> cards) {
         return JsonSerializer.Serialize(cards.Select(card => card.ToDictionary()).ToArray());
     }
