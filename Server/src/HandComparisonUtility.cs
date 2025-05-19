@@ -20,7 +20,9 @@ public static class HandComparisonUtility {
         return -1;
     }
 
-    private static bool HandIsStraight(List<Card> hand) {
+    public static bool HandIsStraight(List<Card> hand) {
+        //hand must be sorted in descending order of value with Ace high.
+        //will still work with Ace-5 though
         Card? previous = null;
 
         foreach (Card c in hand) {
@@ -29,7 +31,10 @@ public static class HandComparisonUtility {
                 continue;
             }
 
-            if (previous.GetNumericValue() - 1 != c.GetNumericValue()) return false;
+            if (previous.GetNumericValue() - 1 != c.GetNumericValue()) {
+                if (previous.Value == "A" && c.Value == "5") continue; //Given the sorted precondition, doing this allows A-5 to be valid. 
+                return false;
+            }
         }
 
         return true;
