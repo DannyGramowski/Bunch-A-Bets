@@ -7,7 +7,7 @@ public static class HandComparisonUtility {
         return -1;
     }
 
-    private static int CompareHands(List<Card> hand1, List<Card> hand2) {
+    public static int CompareHands(List<Card> hand1, List<Card> hand2) {
         hand1 = hand1.OrderByDescending(c => c.GetNumericValue()).ToList();
         hand2 = hand2.OrderByDescending(c => c.GetNumericValue()).ToList();
 
@@ -40,7 +40,7 @@ public static class HandComparisonUtility {
         return true;
     }
 
-    private static bool HandIsFlush(List<Card> hand) {
+    public static bool HandIsFlush(List<Card> hand) {
         Card? previous = null;
 
         foreach (Card c in hand) {
@@ -56,7 +56,7 @@ public static class HandComparisonUtility {
     }
 
     //(int, int) (numericvalue, count) where numeric value is the value returned by card.GetNumericValue()
-    private static (int, int) GetBestOfKind(List<Card> hand) {
+    public static (int, int) GetBestOfKind(List<Card> hand) {
         Dictionary<int, int> count = new();
 
         foreach (Card c in hand) {
