@@ -5,7 +5,7 @@ public class Deck {
     private Stack<Card> _cards = new Stack<Card>();
 
     public Deck() {
-        foreach(string suit in Card.SUIT_VALUES) {
+        foreach (string suit in Card.SUIT_VALUES) {
             foreach (string value in Card.CARD_VALUES) {
                 _cards.Push(new Card(value, suit));
             }

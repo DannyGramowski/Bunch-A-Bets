@@ -11,7 +11,7 @@ using System.Threading;
 using Json = Dictionary<string, string>;
 
 public class BotSocket {
-    
+
     private TcpListener? _listener;
     private TcpClient? _client;
     private Stream? _stream;
@@ -19,21 +19,22 @@ public class BotSocket {
 
     private Queue<Json> _incomingMessages = new();
     private Queue<Json> _outgoingMessages = new();
-    
-    
+
+
     public BotSocket(int port) {
         try {
             _port = port;
             Thread thread = new Thread(() => CreateSocket(port));
             thread.Start();
-        } catch (Exception e) {
-          Console.WriteLine(e);
+        }
+        catch (Exception e) {
+            Console.WriteLine(e);
         }
     }
-    
+
     public bool Connected => _stream != null && (_client?.Connected ?? false);
 
-    
+
     public void SendMessage(Json message) {
         lock (_outgoingMessages) {
             _outgoingMessages.Enqueue(message);
@@ -47,7 +48,7 @@ public class BotSocket {
     }
 
     public bool HasMessageReceived() {
-        lock(_incomingMessages) return _incomingMessages.Count > 0;
+        lock (_incomingMessages) return _incomingMessages.Count > 0;
     }
 
     private void CreateSocket(int port) {
@@ -58,9 +59,9 @@ public class BotSocket {
         _client = _listener.AcceptTcpClient();
         _stream = _client.GetStream();
         Console.WriteLine("Client connected on port " + port);
-        
-        SendMessage(new Json() { {"Welcome", "hi"} });
-        
+
+        SendMessage(new Json() { { "Welcome", "hi" } });
+
         while (true) {
             if (_outgoingMessages.Count > 0) {
                 Json outgoingMessage;

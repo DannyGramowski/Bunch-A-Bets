@@ -6,7 +6,7 @@ public struct BotGameData {
     public int PotValue;
 
     public void NewHand(List<Card> cards) {
-        if(cards.Count != 2) Console.Error.WriteLine("Invalid number of cards");
+        if (cards.Count != 2) Console.Error.WriteLine("Invalid number of cards");
         Cards = cards;
         NewRound();
     }

@@ -6,16 +6,16 @@ public class Bot {
     public int ID => _id;
     public string Name => _name;
     public BotGameData GameData => _gameData;
-    
+
     public int Bank;
-    
+
     private BotSocket _socket;
-    
+
     private int _id; //sequential value set based on number of players registered. Starts at 1.
     private string _name;
     private BotGameData _gameData;
     public DateTime lastChatTime;
-    
+
     public Bot(int id, int port, string name, int startingBank) {
         _socket = new BotSocket(port);
         _id = id;
@@ -37,7 +37,7 @@ public class Bot {
             Bank = 0;
             _gameData.PotValue = amount;
             _gameData.RoundState = BotRoundState.AllIn;
-            
+
             return false;
         }
 
@@ -63,7 +63,7 @@ public class Bot {
         }
         return message;
     }
-    
+
     public bool HasMessageReceived() => _socket.HasMessageReceived();
 
 
@@ -87,8 +87,8 @@ public class Bot {
         }
         return false;
     }
-    
-    
+
+
     public static string SerializeBotsList(List<Bot> bots) {
         return JsonSerializer.Serialize(bots.Select(bot => bot.ToDictionary()).ToArray());
     }

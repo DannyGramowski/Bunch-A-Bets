@@ -81,7 +81,7 @@ public class Game {
     public void PlayGame() {
         _logs = new List<string>();
         for (int i = 0; i < _bots.Count; i++) {//TODO is this correct. This doesn't guarentee 6 games
-        
+
             PlayHand();
 
             //move order of players
@@ -186,13 +186,10 @@ public class Game {
      * if a valid TakeAction message from the current bot was received during this cycle, returns trues,
      * otherwise returns false.
      */
-    private bool GetAnyMessages(Bot activeBot)
-    {
+    private bool GetAnyMessages(Bot activeBot) {
         bool isResolved = false;
-        foreach (Bot b in _bots)
-        {
-            if (b.HasMessageReceived())
-            {
+        foreach (Bot b in _bots) {
+            if (b.HasMessageReceived()) {
                 Json message = b.ReceiveMessage();
                 isResolved |= HandleResponse(message, b, b == activeBot);
             }
@@ -257,10 +254,8 @@ public class Game {
         return true;
     }
 
-    private void SendChat(string message, Bot bot)
-    {
-        if (bot.lastChatTime > DateTime.Now - TimeSpan.FromMilliseconds(CHAT_TIMEOUT_MS))
-        {
+    private void SendChat(string message, Bot bot) {
+        if (bot.lastChatTime > DateTime.Now - TimeSpan.FromMilliseconds(CHAT_TIMEOUT_MS)) {
             return;
         }
         Json response = new Json() {
@@ -268,8 +263,7 @@ public class Game {
             {"message", message},
             {"author_name", bot.Name},
         };
-        foreach (Bot b in _bots)
-        {
+        foreach (Bot b in _bots) {
             b.SendMessage(response);
         }
 
@@ -299,27 +293,22 @@ public class Game {
     /* Handles a single bot message mid-game. Returns true if the message reflects a valid TakeAction message,
      * and the action was performed successfully.
      */
-    private bool HandleResponse(Json response, Bot bot, bool actionAllowed)
-    {
-        if (!response.ContainsKey(CommandExtensions.CommandText))
-        {
+    private bool HandleResponse(Json response, Bot bot, bool actionAllowed) {
+        if (!response.ContainsKey(CommandExtensions.CommandText)) {
             bot.SendMessage(GetErrorMessageData(ErrorType.InvalidInput));
             return false;
         }
         Command cmd = CommandExtensions.FromCommandString(response[CommandExtensions.CommandText]);
 
-        switch (cmd)
-        {
+        switch (cmd) {
             case Command.TakeAction:
-                if (!actionAllowed)
-                {
+                if (!actionAllowed) {
                     bot.SendMessage(GetErrorMessageData(ErrorType.NotExpected));
                     return false;
                 }
                 return HandleTakeAction(response, bot);
             case Command.SendChat:
-                if (!response.ContainsKey("message") || response["message"].Length == 0)
-                {
+                if (!response.ContainsKey("message") || response["message"].Length == 0) {
                     bot.SendMessage(GetErrorMessageData(ErrorType.InvalidInput));
                     return false;
                 }
@@ -373,8 +362,8 @@ public class Game {
     private void SendErrorMessage(Bot bot, ErrorType error) {
         Json data = GetErrorMessageData(error);
         WriteLog(bot, data);
-        bot.SendMessage(data);   
-        
+        bot.SendMessage(data);
+
     }
 
     private Json GetErrorMessageData(ErrorType error) {

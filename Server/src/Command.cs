@@ -28,7 +28,7 @@ public static class CommandExtensions {
         string json = JsonSerializer.Serialize(command);
         return json.Trim('"'); // Remove surrounding quotes
     }
-    
+
     public static Command FromCommandString(string value) {
         return JsonSerializer.Deserialize<Command>($"\"{value}\"");
     }

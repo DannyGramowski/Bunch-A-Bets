@@ -6,8 +6,8 @@ public class Epic {
     public const int STARTING_BANK = 500;
     private List<Bot> _bots = new List<Bot>();
     private Game _game1;
-    
-    public Epic() { 
+
+    public Epic() {
         new Thread(() => HttpServer.Run(_bots)).Start();
 
         Thread.Sleep(2000);
@@ -27,5 +27,5 @@ public class Epic {
             }
         }
     }
-    
+
 }
