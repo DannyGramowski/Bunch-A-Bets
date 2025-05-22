@@ -21,12 +21,21 @@ public static class HandComparisonUtility {
     }
 
     public static int CompareHands(List<Card> hand1, List<Card> hand2) {
+        //-1 if hand1 is better, 0 if equal, 1 if hand2 is better
         hand1 = hand1.OrderByDescending(c => c.GetNumericValue()).ToList();
         hand2 = hand2.OrderByDescending(c => c.GetNumericValue()).ToList();
 
         if (hand1.Count != 5 || hand2.Count != 5) {
             throw new Exception("hands must be 5 cards");
         }
+
+        bool h1straight = HandIsStraight(hand1);
+        bool h1flush = HandIsFlush(hand1);
+        var h1BestKind = GetBestOfKind(hand1);
+
+        bool h2straight = HandIsStraight(hand2);
+        bool h2flush = HandIsFlush(hand2);
+        var h2BestKind = GetBestOfKind(hand2);
 
         //handle if 2 players have equal pair
         //handle if 2 players have equal higher pair in 2 pair
