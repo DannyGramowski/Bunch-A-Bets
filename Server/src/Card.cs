@@ -6,8 +6,8 @@ public class Card {
     public static readonly string[] CARD_VALUES = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
     public static readonly string[] SUIT_VALUES = { "C", "S", "D", "H"}; 
     
-    public static readonly Dictionary<string, string> CARD_VALUES_MAPPING = new Dictionary<string, string>{ {"2", "2"}, {"3", "3"}, {"4", "4"}, {"5", "5"}, {"6", "6"}, {"7", "7"}, {"8", "8"}, {"9", "9"}, {"10", "10"}, {"J", "Jack"}, {"Q", "Queen"}, {"K", "King"}, {"A", "Ace"} };
-    public static readonly Dictionary<string, string> SUIT_VALUES_MAPPING = new Dictionary<string, string>{ {"C", "Clubs"}, {"S", "Spades"}, {"D", "Diamonds"}, {"H", "Hearts"}}; 
+    public static readonly Dictionary<string, object> CARD_VALUES_MAPPING = new Dictionary<string, object>{ {"2", "2"}, {"3", "3"}, {"4", "4"}, {"5", "5"}, {"6", "6"}, {"7", "7"}, {"8", "8"}, {"9", "9"}, {"10", "10"}, {"J", "Jack"}, {"Q", "Queen"}, {"K", "King"}, {"A", "Ace"} };
+    public static readonly Dictionary<string, object> SUIT_VALUES_MAPPING = new Dictionary<string, object>{ {"C", "Clubs"}, {"S", "Spades"}, {"D", "Diamonds"}, {"H", "Hearts"}}; 
     
     public readonly string Value;  
     public readonly string Suit;
@@ -21,15 +21,19 @@ public class Card {
         return "(" + CARD_VALUES_MAPPING[Value] + ":" + SUIT_VALUES_MAPPING[Suit] + ")";
     }
 
-    public Dictionary<string, string> ToDictionary() {
-        return new Dictionary<string, string>() {{"value", Value}, {"suit", Suit}};
+    public Dictionary<string, object> ToDictionary() {
+        return new Dictionary<string, object>() {{"value", Value}, {"suit", Suit}};
     }
 
     public int GetNumericValue() {
         return Array.IndexOf(CARD_VALUES, Value) + 2;
     }
 
-    public static string SerializeCardList(List<Card> cards) {
-        return JsonSerializer.Serialize(cards.Select(card => card.ToDictionary()).ToArray());
+    public static List<Dictionary<string, object>> SerializeCardList(List<Card> cards) {
+        if (cards == null)
+        {
+            return new List<Dictionary<string, object>>();
+        }
+        return cards.Select(card => card.ToDictionary()).ToList();
     }
 }

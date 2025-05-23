@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.Serialization;
 using System.Text.Json;
@@ -6,39 +7,63 @@ using System.Text.Json.Serialization;
 
 namespace Server;
 
-using Json = Dictionary<string, string>;
+using Json = Dictionary<string, object>;
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ErrorType {
-    [EnumMember(Value = "invalid_input")] InvalidInput,
-    [EnumMember(Value = "not_expected")] NotExpected,
-    [EnumMember(Value = "bad_action_type")] BadActionType,
-    [EnumMember(Value = "bad_value")] BadValue,
+    InvalidInput,
+    NotExpected,
+    BadActionType,
+    BadValue,
 }
 
 public static class ErrorTypeExtensions {
-    public static string ToErrorString(this ErrorType errorType) {
-        // Serialize to JSON, e.g., "invalid_input"
-        string json = JsonSerializer.Serialize(errorType);
-        return json.Trim('"'); // Remove surrounding quotes
+    private static readonly Dictionary<ErrorType, string> ErrorToString = new()
+    {
+        { ErrorType.InvalidInput, "invalid_input" },
+        { ErrorType.NotExpected, "not_expected" },
+        { ErrorType.BadActionType, "bad_action_type" },
+        { ErrorType.BadValue, "bad_value" },
+    };
+
+    private static readonly Dictionary<string, ErrorType> StringToError = ErrorToString
+        .ToDictionary(kv => kv.Value, kv => kv.Key);
+
+    public static string ToErrorString(this ErrorType errorType)
+    {
+        return ErrorToString[errorType];
+    }
+
+    public static ErrorType FromErrorString(string value)
+    {
+        return StringToError[value];
     }
 }
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ActionType {
-    [EnumMember(Value = "call")] Call,
-    [EnumMember(Value = "raise")] Raise,
-    [EnumMember(Value = "fold")] Fold,
+    Call,
+    Raise,
+    Fold,
 }
 
 public static class ActionTypeExtensions {
-    public static string ToActionString(this ActionType actionType) {
-        // Serialize to JSON, e.g., "raise"
-        string json = JsonSerializer.Serialize(actionType);
-        return json.Trim('"'); // Remove surrounding quotes
+    private static readonly Dictionary<ActionType, string> ActionToString = new()
+    {
+        { ActionType.Call, "call" },
+        { ActionType.Raise, "raise" },
+        { ActionType.Fold, "fold" },
+    };
+
+    private static readonly Dictionary<string, ActionType> StringToAction = ActionToString
+        .ToDictionary(kv => kv.Value, kv => kv.Key);
+
+    public static string ToActionString(this ActionType actionType)
+    {
+        return ActionToString[actionType];
     }
-    public static ActionType FromActionString(string value) {
-        return JsonSerializer.Deserialize<ActionType>($"\"{value}\"");
+
+    public static ActionType FromActionString(string value)
+    {
+        return StringToAction[value]; // Add safety if desired
     }
 }
 
@@ -93,100 +118,135 @@ public class Game {
 
     }
 
-    private void PlayHand() {
+    private void PlayHand()
+    {
         _deck = new Deck();
-        foreach (Bot bot in _bots) {
+        foreach (Bot bot in _bots)
+        {
             bot.GameData.NewHand(new List<Card>() { _deck.DrawCard(), _deck.DrawCard() });
         }
 
         //clear bot pots and reset round states for those still playing. Clears from any previous hands. This is probably redundant
-        foreach (Bot bot in _bots) {
+        foreach (Bot bot in _bots)
+        {
             bot.GameData.NewRound();
         }
 
+        BotBet(_bots[_bots.Count - 1], BIG_BLIND);
+        BotBet(_bots[_bots.Count - 2], SMALL_BLIND);
 
-        _bots[-1].Bet(BIG_BLIND);
-        _bots[-2].Bet(SMALL_BLIND);
+        int[] roundCards = [0, 3, 1, 1];
 
-        PlayRound(); //initial round no cards
+        bool result;
+        for (int r = 0; r < 4; r++)
+        {
+            for (int i = 0; i < roundCards[r]; i++)
+            {
+                _centerCards.Add(_deck.DrawCard());
+            }
+            result = PlayRound();
+            if (result)
+            {
+                break;
+            }
+        }
 
-        _centerCards.Add(_deck.DrawCard());
-        _centerCards.Add(_deck.DrawCard());
-        _centerCards.Add(_deck.DrawCard());
-        //deal 3 cards
-
-        PlayRound(); //Flop
-
-        _centerCards.Add(_deck.DrawCard());
-        //deal 1 card
-
-        PlayRound(); //Turn
-
-        _centerCards.Add(_deck.DrawCard());
-        //deal 1 card
-
-        PlayRound(); //River
-
-
+        Console.WriteLine("SHOWDOWN TIME BABY");
+        // TODO implement showdown
+        // TODO handle pot splitting properly on all-in
         //showdown
     }
 
-    private void PlayRound() {
-        _highestBidValue = 0;
-
-
+    /* Plays a single round of the game.
+     * Returns true if the hand ends here (advances immediately to Showdown)
+     */
+    private bool PlayRound()
+    {
+        Console.WriteLine("Beginning Round");
         // TODO Really, this should be a while true and keep going until the bets are set. Also probably needs some more logic for skipping bots who can't bet
         //while all bots are not either folded, all in, or their be meets the pot bet
         bool continueRound = true;
-        while (continueRound) {
+        while (continueRound)
+        {
             continueRound = false;
-            foreach (Bot bot in _bots) {
+            foreach (Bot bot in _bots)
+            {
                 //If the bot has played previous but someone after raised, they get another chance to call, raise or fold
+                // TODO also, if all other bots have folded or all in, the round (and the entire hand) should be finished immediately - do this by returning True to PlayRound()
+                if (EveryoneAllIn())
+                {
+                    return true;
+                }
                 if (!(bot.GameData.RoundState == BotRoundState.NotPlayed || (bot.GameData.StillBidding() && bot.GameData.PotValue != _highestBidValue))) continue;
                 continueRound = true;
 
-                if (bot.Bank == 0) {
+                if (bot.Bank == 0)
+                {
                     TakeAction(ActionType.Fold, 0, bot);
                     continue;
                 }
 
                 var logData = GetBotRequestActionData(bot);
-                logData["hand"] = ""; //sanitize out hand data from logs
-                WriteLog(bot, logData);
+                logData["hand"] = new List<Json>(); //sanitize out hand data from logs
+                WriteLog(bot, true, logData);
 
                 bot.SendMessage(GetBotRequestActionData(bot));
 
                 DateTime startClock = DateTime.Now;
-                while (true) {
+                while (true)
+                {
                     bool actionTaken = GetAnyMessages(bot);
                     if (actionTaken) { break; }
-                    if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_TIMEOUT_MS)) {
+                    if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_TIMEOUT_MS))
+                    {
                         TakeAction(ActionType.Fold, 0, bot); // womp womp
                         break;
                     }
-                    // TODO consider adding a brief wait here
+                    Thread.Sleep(5);
                 }
                 // wait off remainder of time
-                while (true) {
-                    if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_MIN_TIMEOUT_MS)) {
+                while (true)
+                {
+                    if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_MIN_TIMEOUT_MS))
+                    {
                         break;
                     }
-                    Thread.Sleep(10);
+                    GetAnyMessages(null); // Allows for sending messages during this time
+                    Thread.Sleep(5);
                 }
+                GetAnyMessages(null); // Allow for one chance to send messages before next round, that way "reaction" messages get sent here
             }
         }
 
+        if (EveryoneAllIn())
+        {
+            return true;
+        }
+
         //clear bot pots and reset round states for those still playing
-        foreach (Bot bot in _bots) {
+        foreach (Bot bot in _bots)
+        {
             bot.GameData.NewRound();
         }
+        _highestBidValue = 0;
+        return false;
+    }
+
+    private bool EveryoneAllIn()
+    {
+        int notAllInCount = 0;
+        foreach (Bot bot in _bots)
+        {
+            if (bot.GameData.RoundState != BotRoundState.Folded && bot.GameData.RoundState != BotRoundState.AllIn) { notAllInCount ++; }
+        }
+        return notAllInCount <= 1;
     }
 
     /* Handles messages from any bot. Only accepts TakeAction messages from the currently active bot. 
      * if a valid TakeAction message from the current bot was received during this cycle, returns trues,
      * otherwise returns false.
      */
-    private bool GetAnyMessages(Bot activeBot)
+    private bool GetAnyMessages(Bot? activeBot)
     {
         bool isResolved = false;
         foreach (Bot b in _bots)
@@ -203,30 +263,29 @@ public class Game {
     private bool TakeAction(ActionType actionType, int raiseAmount, Bot bot) {
         BotGameData data = bot.GameData;
 
-        if (actionType == ActionType.Fold) {
+        if (actionType == ActionType.Fold)
+        {
             data.RoundState = BotRoundState.Folded;
-        } else {
-            if (actionType == ActionType.Call) {
+        }
+        else
+        {
+            if (actionType == ActionType.Call)
+            {
                 data.RoundState = BotRoundState.Called;
                 raiseAmount = _highestBidValue;
-            } else {
-                if (raiseAmount < _highestBidValue) {
+            }
+            else
+            {
+                if (raiseAmount < _highestBidValue)
+                {
                     SendErrorMessage(bot, ErrorType.InvalidInput);
                     return false;
                 }
 
                 data.RoundState = BotRoundState.Raised;
-                _highestBidValue = raiseAmount;
             }
 
-            if (bot.Bank < raiseAmount) {
-                data.RoundState = BotRoundState.AllIn;
-                raiseAmount = bot.Bank;
-            }
-
-            bot.Bank -= raiseAmount;
-            data.PotValue = raiseAmount;
-            _totalPot += raiseAmount;
+            BotBet(bot, raiseAmount);
         }
 
         //set action take
@@ -250,11 +309,21 @@ public class Game {
         // }
 
         //add in new bot state and new bot pot
-        WriteLog(bot, new Json() {
+        WriteLog(bot, false, new Json() {
             {"action_type", ActionTypeExtensions.ToActionString(actionType)},
-            {"raise_amount", raiseAmount.ToString()},
+            {"raise_amount", bot.GameData.PotValue},
         });
         return true;
+    }
+
+    private void BotBet(Bot bot, int amount)
+    {
+        int actualBetAmount = bot.Bet(amount - bot.GameData.PotValue);
+        _totalPot += actualBetAmount;
+        if (bot.GameData.PotValue > _highestBidValue)
+        {
+            _highestBidValue = bot.GameData.PotValue;
+        }
     }
 
     private void SendChat(string message, Bot bot)
@@ -273,16 +342,19 @@ public class Game {
             b.SendMessage(response);
         }
 
-        WriteLog(bot, response);
+        WriteLog(bot, false, response);
         bot.lastChatTime = DateTime.Now;
     }
 
-    private void WriteLog(Bot bot, string str) {
-        _logs.Add($"{bot.Name}: {str}");
+    private void WriteLog(Bot bot, bool outgoing, string str)
+    {
+        string outgoingString = outgoing ? "received" : "sent";
+        _logs.Add($"{bot.Name} {outgoingString}: {str}");
+        Console.WriteLine($"{bot.Name} {outgoingString}: {str}");
     }
 
-    private void WriteLog(Bot bot, Json data) {
-        WriteLog(bot, JsonSerializer.Serialize(data));
+    private void WriteLog(Bot bot, bool outgoing, Json data) {
+        WriteLog(bot, outgoing, JsonSerializer.Serialize(data));
     }
 
     private void SendLogs(Bot bot) {
@@ -293,7 +365,7 @@ public class Game {
         };
         bot.SendMessage(response);
 
-        WriteLog(bot, response);
+        WriteLog(bot, true, response);
     }
 
     /* Handles a single bot message mid-game. Returns true if the message reflects a valid TakeAction message,
@@ -301,34 +373,42 @@ public class Game {
      */
     private bool HandleResponse(Json response, Bot bot, bool actionAllowed)
     {
-        if (!response.ContainsKey(CommandExtensions.CommandText))
+        try
         {
-            bot.SendMessage(GetErrorMessageData(ErrorType.InvalidInput));
-            return false;
-        }
-        Command cmd = CommandExtensions.FromCommandString(response[CommandExtensions.CommandText]);
+            if (!response.ContainsKey(CommandExtensions.CommandText))
+            {
+                bot.SendMessage(GetErrorMessageData(ErrorType.InvalidInput));
+                return false;
+            }
+            Command cmd = CommandExtensions.FromCommandString(response[CommandExtensions.CommandText].ToString());
 
-        switch (cmd)
-        {
-            case Command.TakeAction:
-                if (!actionAllowed)
-                {
-                    bot.SendMessage(GetErrorMessageData(ErrorType.NotExpected));
+            switch (cmd)
+            {
+                case Command.TakeAction:
+                    if (!actionAllowed)
+                    {
+                        bot.SendMessage(GetErrorMessageData(ErrorType.NotExpected));
+                        return false;
+                    }
+                    return HandleTakeAction(response, bot);
+                case Command.SendChat:
+                    if (!response.ContainsKey("message") || response["message"].ToString().Length == 0)
+                    {
+                        bot.SendMessage(GetErrorMessageData(ErrorType.InvalidInput));
+                        return false;
+                    }
+                    SendChat(response["message"].ToString(), bot);
                     return false;
-                }
-                return HandleTakeAction(response, bot);
-            case Command.SendChat:
-                if (!response.ContainsKey("message") || response["message"].Length == 0)
-                {
-                    bot.SendMessage(GetErrorMessageData(ErrorType.InvalidInput));
+                case Command.GetLogs:
+                    SendLogs(bot);
                     return false;
-                }
-                SendChat(response["message"], bot);
-                return false;
-            case Command.GetLogs:
-                SendLogs(bot);
-                return false;
+            }
         }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error handling message from Bot {bot.Name}: {e.Message}");
+        }
+        
         return false;
     }
 
@@ -339,7 +419,7 @@ public class Game {
         }
         ActionType actionType;
         try {
-            actionType = ActionTypeExtensions.FromActionString(response["action_type"]);
+            actionType = ActionTypeExtensions.FromActionString(response["action_type"].ToString());
         }
         catch (JsonException jse) {
             SendErrorMessage(bot, ErrorType.BadActionType);
@@ -352,13 +432,13 @@ public class Game {
                 SendErrorMessage(bot, ErrorType.BadActionType);
                 return false;
             }
-            if (!int.TryParse(response["raise_amount"], NumberStyles.Number, CultureInfo.InvariantCulture, out raiseAmount)) {
+            if (!int.TryParse(response["raise_amount"].ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out raiseAmount)) {
                 SendErrorMessage(bot, ErrorType.BadValue);
                 return false;
             }
 
             // Count digits after decimal
-            var parts = response["raise_amount"].Split('.');
+            var parts = response["raise_amount"].ToString().Split('.');
             if (parts.Length > 1 && parts[1].Length > 2) {
                 SendErrorMessage(bot, ErrorType.BadValue);
                 return false;
@@ -372,7 +452,7 @@ public class Game {
 
     private void SendErrorMessage(Bot bot, ErrorType error) {
         Json data = GetErrorMessageData(error);
-        WriteLog(bot, data);
+        WriteLog(bot, true, data);
         bot.SendMessage(data);   
         
     }
@@ -390,12 +470,12 @@ public class Game {
             {"command", Command.RequestAction.ToCommandString()},
             {"hand", Card.SerializeCardList(bot.GameData.Cards)},
             {"center_cards", Card.SerializeCardList(_centerCards)},
-            {"game_number", _gameId.ToString()},
-            {"hand_number", _handNumber.ToString()},
-            {"round_number", ((int)_roundStage).ToString()},
+            {"game_number", _gameId},
+            {"hand_number", _handNumber},
+            {"round_number", _roundStage},
             {"players", Bot.SerializeBotsList(_bots) },
-            {"highest_bid_value", _bots.Max(_bot => _bot.GameData.PotValue).ToString()},
-            {"total_pot_value", _totalPot.ToString()}
+            {"highest_bid_value", _highestBidValue},
+            {"total_pot_value", _totalPot}
         };
     }
 }
