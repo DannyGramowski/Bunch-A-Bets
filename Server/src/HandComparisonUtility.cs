@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Linq;
+
 namespace Server;
 
 
@@ -14,33 +17,144 @@ public enum HandRank {
     RoyalFlush
 }
 
-public static class HandComparisonUtility {
-    public static int CompareBotHands(Bot b1, Bot b2, List<Card> centerCards) {
+public enum HandWinner {
+    Player1,
+    Tie,
+    Player2
+}
 
-        return -1;
+public static class HandComparisonUtility {
+    public static HandWinner CompareBotHands(Bot b1, Bot b2, List<Card> centerCards) {
+
+        return CompareHands(GetBestHand(b1, centerCards), GetBestHand(b2, centerCards));
     }
 
-    public static int CompareHands(List<Card> hand1, List<Card> hand2) {
-        //-1 if hand1 is better, 0 if equal, 1 if hand2 is better
-        hand1 = hand1.OrderByDescending(c => c.GetNumericValue()).ToList();
-        hand2 = hand2.OrderByDescending(c => c.GetNumericValue()).ToList();
+    public static List<Card> GetBestHand(Bot bot, List<Card> centerCards) {
+        var combinations = GetCombinations(bot.GameData.Cards.Concat(centerCards).ToList(), 5);
+        List<Card> bestHand = new ();
 
-        if (hand1.Count != 5 || hand2.Count != 5) {
+        foreach (var hand in combinations) {
+            if (bestHand.Count == 0) {
+                bestHand = hand;
+                continue;
+            }
+            if (CompareHands(bestHand, hand) == HandWinner.Player2) {
+                bestHand = hand;
+            }
+        }
+
+        return bestHand;
+    }
+
+    static IEnumerable<List<Card>> GetCombinations(List<Card> list, int k) {
+        if (k == 0) {
+            yield return new ();
+        } else {
+            for (int i = 0; i <= list.Count - k; i++) {
+                foreach (var tail in GetCombinations(list.Skip(i + 1).ToList(), k - 1)) {
+                    var combination = new List<Card> { list[i] };
+                    combination.AddRange(tail);
+                    yield return combination;
+                }
+            }
+        }
+    }
+
+    public static HandWinner CompareHands(List<Card> h1, List<Card> h2) {
+        //-1 if hand1 is better, 0 if equal, 1 if hand2 is better
+        h1 = h1.OrderByDescending(c => c.GetNumericValue()).ToList();
+        h2 = h2.OrderByDescending(c => c.GetNumericValue()).ToList();
+
+        if (h1.Count != 5 || h2.Count != 5) {
             throw new Exception("hands must be 5 cards");
         }
 
-        bool h1straight = HandIsStraight(hand1);
-        bool h1flush = HandIsFlush(hand1);
-        var h1BestKind = GetBestOfKind(hand1);
+        bool h1straight = HandIsStraight(h1);
+        bool h1flush = HandIsFlush(h1);
+        bool h1StraightFlush = h1straight & h1flush;
+        var h1BestKind = GetBestOfKind(h1);
 
-        bool h2straight = HandIsStraight(hand2);
-        bool h2flush = HandIsFlush(hand2);
-        var h2BestKind = GetBestOfKind(hand2);
+        bool h2straight = HandIsStraight(h2);
+        bool h2flush = HandIsFlush(h2);
+        bool h2StraightFlush = h2straight & h2flush;
+        var h2BestKind = GetBestOfKind(h2);
+
+
+        if (h1StraightFlush && h2StraightFlush) {
+            return HandleTie(h1, h2);
+        } else if (h1StraightFlush) {
+            return HandWinner.Player1;
+        } else if (h2StraightFlush) {
+            return HandWinner.Player2;
+        }
+
+        if (h1BestKind.Item1 == HandRank.FourOfKind && h2BestKind.Item1 == HandRank.FourOfKind) {
+            return HandleTie(h1, h2);
+        } else if (h1BestKind.Item1 == HandRank.FourOfKind) {
+            return HandWinner.Player1;
+        } else if (h2BestKind.Item1 == HandRank.FourOfKind) {
+            return HandWinner.Player2;
+        }
+
+        if (h1BestKind.Item1 == HandRank.FullHouse && h2BestKind.Item1 == HandRank.FullHouse) {
+            return HandleTie(h1, h2);
+        } else if (h1BestKind.Item1 == HandRank.FullHouse) {
+            return HandWinner.Player1;
+        } else if (h2BestKind.Item1 == HandRank.FullHouse) {
+            return HandWinner.Player2;
+        }
+
+        if (h1flush && h2flush) {
+            return HandleTie(h1, h2);
+        } else if (h1flush) {
+            return HandWinner.Player1;
+        } else if (h2flush) {
+            return HandWinner.Player2;
+        }
+
+        if (h1straight && h2straight) {
+            return HandleTie(h1, h2);
+        } else if (h1straight) {
+            return HandWinner.Player1;
+        } else if (h2straight) {
+            return HandWinner.Player2;
+        }
+
 
         //handle if 2 players have equal pair
         //handle if 2 players have equal higher pair in 2 pair
 
-        return -1;
+        return HandleTie(h1, h2);
+    }
+
+    public static HandWinner HandleTie(List<Card> h1, List<Card> h2) {
+        //-1 if hand1 is better, 0 if equal, 1 if hand2 is better
+        //only use GetBestOfKind and use recursion
+        Debug.Assert(h1.Count == h2.Count, $"hand counts must be equal. {h1.Count} != {h2.Count}");
+    
+        if (h1.Count == 0) {
+            return HandWinner.Tie; //A tie
+        }
+
+        var h1Best = GetBestOfKind(h1);
+        var h2Best = GetBestOfKind(h2);
+
+        if (h1Best.Item1 == h2Best.Item1) {
+            if (h1Best.Item2 == h2Best.Item2) {
+                //removes the equivilent cards then perform recursion to find next highest card
+                var newH1 = h1.Where((Card c) => c.GetNumericValue() != h1Best.Item2).ToList();
+                var newH2 = h2.Where((Card c) => c.GetNumericValue() != h2Best.Item2).ToList();
+                return HandleTie(newH1, newH2);
+            }
+
+            return h1Best.Item2 > h2Best.Item2 ? HandWinner.Player1 : HandWinner.Player2;
+        }
+        if (h1Best.Item1 > h2Best.Item1) {
+            return HandWinner.Player1;
+        } else {
+            return HandWinner.Player2;
+        }
+
     }
 
     public static bool HandIsStraight(List<Card> hand) {
