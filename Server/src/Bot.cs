@@ -20,6 +20,7 @@ public class Bot {
         _socket = new BotSocket(port);
         _id = id;
         _name = name;
+        _gameData = new BotGameData();
         Bank = startingBank;
         Console.WriteLine($"Bot ID: {_id}, Bot Port: {port}, Bot Name: {_name}");
     }
@@ -29,34 +30,34 @@ public class Bot {
     /// </summary>
     /// <param name="amount"></param>
     /// <returns>
-    ///     True if the entire went through. False if they went all in. To get the amount they went all in, check GameData.PotValue
+    ///     The amount that was bet. If this is less than inputted, they went all in. To get the amount they went all in, check GameData.PotValue
     /// </returns>
-    public bool Bet(int amount) {
+    public int Bet(int amount) {
         if (amount > Bank) {
             amount = Bank;
             Bank = 0;
-            _gameData.PotValue = amount;
+            _gameData.PotValue += amount;
             _gameData.RoundState = BotRoundState.AllIn;
-
-            return false;
+            
+            return amount;
         }
 
         Bank -= amount;
-        _gameData.PotValue = amount;
+        _gameData.PotValue += amount;
 
-        return true;
+        return amount;
     }
 
-    public void SendMessage(Dictionary<string, string> message) {
+    public void SendMessage(Dictionary<string, object> message) {
         _socket.SendMessage(message);
     }
 
-    public Dictionary<string, string> ReceiveMessage() {
+    public Dictionary<string, object> ReceiveMessage() {
         return _socket.ReadMessage();
     }
 
-    public Dictionary<string, string> ReceiveMessageBlocking() {
-        Dictionary<string, string> message = new Dictionary<string, string>();
+    public List<Dictionary<string, object>> ReceiveMessageBlocking() {
+        List<Dictionary<string, object>> message = new List<Dictionary<string, object>>();
         while (message.Count == 0) {
             Thread.Sleep(10);
             message = _socket.ReceiveMessage();
@@ -67,13 +68,13 @@ public class Bot {
     public bool HasMessageReceived() => _socket.HasMessageReceived();
 
 
-    public Dictionary<string, string> ToDictionary() {
-        return new Dictionary<string, string>() {
-            {"id", ID.ToString()},
+    public Dictionary<string, object> ToDictionary() {
+        return new Dictionary<string, object>() {
+            {"id", ID},
             {"name", _name},
-            {"bank", Bank.ToString()},
-            {"state", ((int)_gameData.RoundState).ToString()},
-            {"pot_value", _gameData.PotValue.ToString()}
+            {"bank", Bank},
+            {"state", _gameData.RoundState},
+            {"pot_value", _gameData.PotValue}
         };
     }
 
@@ -87,9 +88,8 @@ public class Bot {
         }
         return false;
     }
-
-
-    public static string SerializeBotsList(List<Bot> bots) {
-        return JsonSerializer.Serialize(bots.Select(bot => bot.ToDictionary()).ToArray());
+    
+    public static object SerializeBotsList(List<Bot> bots) {
+        return bots.Select(bot => bot.ToDictionary()).ToArray();
     }
 }

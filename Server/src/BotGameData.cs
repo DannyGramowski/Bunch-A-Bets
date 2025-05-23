@@ -1,11 +1,14 @@
 ﻿namespace Server;
 
-public struct BotGameData {
+public class BotGameData {
     public List<Card> Cards;
     public BotRoundState RoundState;
     public int PotValue;
 
-    public void NewHand(List<Card> cards) {
+    public BotGameData() { }
+
+    public void NewHand(List<Card> cards)
+    {
         if (cards.Count != 2) Console.Error.WriteLine("Invalid number of cards");
         Cards = cards;
         NewRound();

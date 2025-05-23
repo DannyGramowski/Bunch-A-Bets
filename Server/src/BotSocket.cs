@@ -8,13 +8,14 @@ using System.Net.Sockets;
 using System.Net;
 using System.Threading;
 
-using Json = Dictionary<string, string>;
+using Json = Dictionary<string, object>;
+using System.Text.RegularExpressions;
 
 public class BotSocket {
 
     private TcpListener? _listener;
     private TcpClient? _client;
-    private Stream? _stream;
+    private NetworkStream? _stream;
     private int _port;
 
     private Queue<Json> _incomingMessages = new();
@@ -26,9 +27,8 @@ public class BotSocket {
             _port = port;
             Thread thread = new Thread(() => CreateSocket(port));
             thread.Start();
-        }
-        catch (Exception e) {
-            Console.WriteLine(e);
+        } catch (Exception e) {
+            Console.WriteLine("Error initializing bot: " + e);
         }
     }
 
@@ -63,19 +63,24 @@ public class BotSocket {
         SendMessage(new Json() { { "Welcome", "hi" } });
 
         while (true) {
-            if (_outgoingMessages.Count > 0) {
+            if (_outgoingMessages.Count > 0)
+            {
                 Json outgoingMessage;
 
-                lock (_outgoingMessages) {
+                lock (_outgoingMessages)
+                {
                     outgoingMessage = _outgoingMessages.Dequeue();
                 }
                 SendMessageHelper(outgoingMessage);
             }
 
-            Json incomingMessage = ReceiveMessage();
+            List<Json> incomingMessage = ReceiveMessage();
             if (incomingMessage.Count > 0) {
                 lock (_incomingMessages) {
-                    _incomingMessages.Enqueue(incomingMessage);
+                    foreach (Json j in incomingMessage)
+                    {
+                        _incomingMessages.Enqueue(j);
+                    }
                 }
             }
 
@@ -87,27 +92,50 @@ public class BotSocket {
     private void SendMessageHelper(Json message) {
         string json = JsonSerializer.Serialize(message);
         byte[] data = Encoding.UTF8.GetBytes(json + "\n");
-        if (_stream == null) return;
+        if (_stream == null) return; // TODO this doesn't fully handle when bots close connections
         _stream.Write(data, 0, data.Length);
         _stream.Flush();
     }
 
-    public Json ReceiveMessage() {
+    public List<Json> ReceiveMessage() {
         string? json = null;
         try {
+            if (_stream == null || !_stream.DataAvailable) return new List<Json>();
 
-            using var reader = new StreamReader(_stream, Encoding.UTF8, leaveOpen: true);
-            json = reader.ReadLine();
+            var buffer = new byte[4096];
+            var allBytes = new List<byte>();
 
-            if (json is null) {
-                return new Json();
+            while (_stream.DataAvailable)
+            {
+                int bytesRead = _stream.Read(buffer, 0, buffer.Length);
+                if (bytesRead == 0) break; // connection closed
+                allBytes.AddRange(buffer[..bytesRead]);
             }
 
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new();
+            json = Encoding.UTF8.GetString(allBytes.ToArray());
+
+            if (json is null || json.Length < 2)
+            {
+                return new List<Json>();
+            }
+
+            List<string> messages = new List<string>();
+
+            foreach (Match match in Regex.Matches(json, @"\{[^}]*\}"))
+            {
+                messages.Add(match.Value);
+            }
+
+            if (messages.Count == 0)
+            {
+                return new List<Json>();
+            }
+
+            return messages.Select(m => JsonSerializer.Deserialize<Json>(m) ?? new()).ToList();
         }
         catch {
-            Console.WriteLine("invalid received object " + json);
+            Console.WriteLine("Invalid received object " + json);
         }
-        return new Dictionary<string, string>();
+        return new List<Json>();
     }
 }
