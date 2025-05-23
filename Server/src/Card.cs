@@ -26,15 +26,19 @@ public class Card {
         return other != null && this.Value == other.Value && this.Suit == other.Suit;
     }
 
-    public Dictionary<string, string> ToDictionary() {
-        return new Dictionary<string, string>() { { "value", Value }, { "suit", Suit } };
+    public Dictionary<string, object> ToDictionary() {
+        return new Dictionary<string, object>() { { "value", Value }, { "suit", Suit } };
     }
 
     public int GetNumericValue() {
         return Array.IndexOf(CARD_VALUES, Value) + 2;
     }
 
-    public static string SerializeCardList(List<Card> cards) {
-        return JsonSerializer.Serialize(cards.Select(card => card.ToDictionary()).ToArray());
+    public static List<Dictionary<string, object>> SerializeCardList(List<Card> cards) {
+        if (cards == null)
+        {
+            return new List<Dictionary<string, object>>();
+        }
+        return cards.Select(card => card.ToDictionary()).ToList();
     }
 }

@@ -8,29 +8,41 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Runtime.Serialization;
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
-
 public enum Command {
-    [EnumMember(Value = "request_action")] RequestAction,
-    [EnumMember(Value = "confirm_action")] ConfirmAction,
-    [EnumMember(Value = "log_data")] LogData,
-    [EnumMember(Value = "receive_chat")] ReceiveChat,
-    [EnumMember(Value = "hand_result")] HandResult,
-    [EnumMember(Value = "take_action")] TakeAction,
-    [EnumMember(Value = "get_logs")] GetLogs,
-    [EnumMember(Value = "send_chat")] SendChat,
-
+    RequestAction,
+    ConfirmAction,
+    LogData,
+    ReceiveChat,
+    HandResult,
+    TakeAction,
+    GetLogs,
+    SendChat,
 }
 
 public static class CommandExtensions {
-    public static string ToCommandString(this Command command) {
-        // Serialize to JSON, e.g., "request_action"
-        string json = JsonSerializer.Serialize(command);
-        return json.Trim('"'); // Remove surrounding quotes
+    private static readonly Dictionary<Command, string> CommandToString = new()
+    {
+        { Command.RequestAction, "request_action" },
+        { Command.ConfirmAction, "confirm_action" },
+        { Command.LogData, "log_data" },
+        { Command.ReceiveChat, "receive_chat" },
+        { Command.HandResult, "hand_result" },
+        { Command.TakeAction, "take_action" },
+        { Command.GetLogs, "get_logs" },
+        { Command.SendChat, "send_chat" },
+    };
+
+    private static readonly Dictionary<string, Command> StringToCommand = CommandToString
+        .ToDictionary(kv => kv.Value, kv => kv.Key);
+
+    public static string ToCommandString(this Command command)
+    {
+        return CommandToString[command];
     }
 
-    public static Command FromCommandString(string value) {
-        return JsonSerializer.Deserialize<Command>($"\"{value}\"");
+    public static Command FromCommandString(string value)
+    {
+        return StringToCommand[value]; // Consider TryGetValue + exception handling for safety
     }
 
     public static string CommandText => "command";
