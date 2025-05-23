@@ -24,13 +24,15 @@ public enum HandWinner {
 }
 
 public static class HandComparisonUtility {
+    public const int HAND_SIZE = 5;
+
     public static HandWinner CompareBotHands(Bot b1, Bot b2, List<Card> centerCards) {
 
-        return CompareHands(GetBestHand(b1, centerCards), GetBestHand(b2, centerCards));
+        return CompareHands(GetBestHand(b1.GameData.Cards, centerCards), GetBestHand(b2.GameData.Cards, centerCards));
     }
 
-    public static List<Card> GetBestHand(Bot bot, List<Card> centerCards) {
-        var combinations = GetCombinations(bot.GameData.Cards.Concat(centerCards).ToList(), 5);
+    public static List<Card> GetBestHand(List<Card> botHand, List<Card> centerCards) {
+        var combinations = GetCombinations(botHand.Concat(centerCards).ToList(), HAND_SIZE);
         List<Card> bestHand = new ();
 
         foreach (var hand in combinations) {
@@ -38,7 +40,8 @@ public static class HandComparisonUtility {
                 bestHand = hand;
                 continue;
             }
-            if (CompareHands(bestHand, hand) == HandWinner.Player2) {
+            var comparedResult = CompareHands(bestHand, hand);
+            if (comparedResult == HandWinner.Player2) {
                 bestHand = hand;
             }
         }
@@ -54,17 +57,17 @@ public static class HandComparisonUtility {
                 foreach (var tail in GetCombinations(list.Skip(i + 1).ToList(), k - 1)) {
                     var combination = new List<Card> { list[i] };
                     combination.AddRange(tail);
-                    yield return combination;
+                    yield return OrderCards(combination);
                 }
             }
         }
     }
 
-    public static HandWinner CompareHands(List<Card> h1, List<Card> h2) {
-        //-1 if hand1 is better, 0 if equal, 1 if hand2 is better
-        h1 = h1.OrderByDescending(c => c.GetNumericValue()).ToList();
-        h2 = h2.OrderByDescending(c => c.GetNumericValue()).ToList();
+    public static List<Card> OrderCards(List<Card> cards) {
+        return cards.OrderByDescending(c => c.GetNumericValue()).ToList();
+    }
 
+    public static HandWinner CompareHands(List<Card> h1, List<Card> h2) {
         if (h1.Count != 5 || h2.Count != 5) {
             throw new Exception("hands must be 5 cards");
         }
@@ -121,15 +124,10 @@ public static class HandComparisonUtility {
         }
 
 
-        //handle if 2 players have equal pair
-        //handle if 2 players have equal higher pair in 2 pair
-
         return HandleTie(h1, h2);
     }
 
     public static HandWinner HandleTie(List<Card> h1, List<Card> h2) {
-        //-1 if hand1 is better, 0 if equal, 1 if hand2 is better
-        //only use GetBestOfKind and use recursion
         Debug.Assert(h1.Count == h2.Count, $"hand counts must be equal. {h1.Count} != {h2.Count}");
     
         if (h1.Count == 0) {
@@ -171,9 +169,14 @@ public static class HandComparisonUtility {
             }
 
             if (previous.GetNumericValue() - 1 != c.GetNumericValue()) {
-                if (previous.Value == "A" && c.Value == "5") continue; //Given the sorted precondition, doing this allows A-5 to be valid. 
+                if (previous.Value == "A" && c.Value == "5") {
+                    previous = c;
+                    continue; //Given the sorted precondition, doing this allows A-5 to be valid. 
+                }
                 return false;
             }
+            previous = c;
+
         }
 
         return true;

@@ -140,17 +140,22 @@ public class HandComparisonTes {
     [Fact]
     public void TestGetBestHand() {
         List<Card> cards1 = make([("J", "C"), ("10", "C"), ("8", "C"), ("7", "C"), ("5", "C")]);
+        List<Card> cards2 = make([("J", "D"), ("10", "S"), ("9", "C"), ("7", "C"), ("4", "C")]);
 
         List<Card> h1 = make([("9", "H"), ("10", "C")]);
         List<Card> h2 = make([("9", "H"), ("9", "C")]);
 
         Assert.Equal(make([("J", "C"), ("10", "C"), ("8", "C"), ("7", "C"), ("10", "C")]), HandComparisonUtility.GetBestHand(h1, cards1));
         Assert.Equal(make([("J", "C"), ("10", "C"), ("8", "C"), ("7", "C"), ("9", "C")]), HandComparisonUtility.GetBestHand(h2, cards1));
+        Assert.Equal(make([("10", "C"), ("J", "D"), ("10", "S"), ("9", "H"), ("9", "C")]), HandComparisonUtility.GetBestHand(h1, cards2));
+
+
 
     }
 
     [Fact]
     public void TestCompareBotHands() {
+        
 
     }
 }

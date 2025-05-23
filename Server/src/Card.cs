@@ -13,12 +13,17 @@ public class Card {
     public readonly string Suit;
 
     public Card(string value, string suit) {
-        Value = value;
-        Suit = suit;
+        Value = value.ToUpper();
+        Suit = suit.ToUpper();
     }
 
     public override string ToString() {
         return "(" + CARD_VALUES_MAPPING[Value] + ":" + SUIT_VALUES_MAPPING[Suit] + ")";
+    }
+
+    public override bool Equals(object? obj) {
+        Card? other = obj as Card;
+        return other != null && this.Value == other.Value && this.Suit == other.Suit;
     }
 
     public Dictionary<string, string> ToDictionary() {
