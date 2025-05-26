@@ -18,9 +18,9 @@ public enum HandRank {
 }
 
 public enum HandWinner {
-    Player1,
-    Tie,
-    Player2
+    Player1 = -1,
+    Tie = 0,
+    Player2 = 1
 }
 
 public static class HandComparisonUtility {

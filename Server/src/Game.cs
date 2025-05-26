@@ -118,17 +118,14 @@ public class Game {
 
     }
 
-    private void PlayHand()
-    {
+    private void PlayHand() {
         _deck = new Deck();
-        foreach (Bot bot in _bots)
-        {
+        foreach (Bot bot in _bots) {
             bot.GameData.NewHand(new List<Card>() { _deck.DrawCard(), _deck.DrawCard() });
         }
 
         //clear bot pots and reset round states for those still playing. Clears from any previous hands. This is probably redundant
-        foreach (Bot bot in _bots)
-        {
+        foreach (Bot bot in _bots) {
             bot.GameData.NewRound();
         }
 
@@ -138,30 +135,24 @@ public class Game {
         int[] roundCards = [0, 3, 1, 1];
 
         bool result;
-        for (int r = 0; r < 4; r++)
-        {
-            for (int i = 0; i < roundCards[r]; i++)
-            {
+        for (int r = 0; r < 4; r++) {
+            for (int i = 0; i < roundCards[r]; i++) {
                 _centerCards.Add(_deck.DrawCard());
             }
             result = PlayRound();
-            if (result)
-            {
+            if (result) {
                 break;
             }
         }
 
-        Console.WriteLine("SHOWDOWN TIME BABY");
-        // TODO implement showdown
-        // TODO handle pot splitting properly on all-in
-        //showdown
+
+        HandleShowdown();
     }
 
     /* Plays a single round of the game.
      * Returns true if the hand ends here (advances immediately to Showdown)
      */
-    private bool PlayRound()
-    {
+    private bool PlayRound() {
         Console.WriteLine("Beginning Round");
         // TODO Really, this should be a while true and keep going until the bets are set. Also probably needs some more logic for skipping bots who can't bet
         //while all bots are not either folded, all in, or their be meets the pot bet
@@ -242,12 +233,59 @@ public class Game {
         return notAllInCount <= 1;
     }
 
+    private void HandleShowdown() {
+        Console.WriteLine("SHOWDOWN TIME BABY");
+
+
+        var botsCopy = _bots.ToList();
+
+        //I understand this is complicated. Unfortunatley due to edges cases like ties and bots can only win what they bet it is like this.
+        while (_totalPot > 0) {
+            List<Bot> highestHands = new(); //This will contain 2 bots if there is a tie.
+
+            //finds the best hands from all bots that made it to the end
+            foreach (Bot b in _bots) {
+                if (b.GameData.RoundState == BotRoundState.Folded) continue;
+                if (highestHands.Count == 0) {
+                    highestHands.Add(b);
+                    continue;
+                }
+
+                var handComparisonResult = HandComparisonUtility.CompareBotHands(highestHands[0], b, _centerCards);
+                if (handComparisonResult == HandWinner.Tie) {
+                    highestHands.Add(b);
+                } else if (handComparisonResult == HandWinner.Tie) {
+                    highestHands.Clear();
+                    highestHands.Add(b);
+                }
+            }
+
+            // //This will lose some money do to int division if pot % count != 0. This will only be 1 or 2 cents so its not a big deal
+            var amountPerBot = _totalPot / highestHands.Count;
+            foreach (Bot bot in highestHands) {
+                if (amountPerBot > bot.GameData.PotValueOfHand) {
+                    var val = bot.GameData.PotValueOfHand;
+                    bot.Bank += val;
+                    _totalPot -= val;
+                    botsCopy.Remove(bot);
+                    highestHands.Remove(bot);
+                } else {
+                    bot.Bank += amountPerBot;
+                }
+            }
+
+            //handle round off error
+            if (_totalPot <= highestHands.Count - 1) {
+                _totalPot = 0;
+            }
+        }
+    }
+
     /* Handles messages from any bot. Only accepts TakeAction messages from the currently active bot. 
      * if a valid TakeAction message from the current bot was received during this cycle, returns trues,
      * otherwise returns false.
      */
-    private bool GetAnyMessages(Bot? activeBot)
-    {
+    private bool GetAnyMessages(Bot? activeBot) {
         bool isResolved = false;
         foreach (Bot b in _bots) {
             if (b.HasMessageReceived()) {

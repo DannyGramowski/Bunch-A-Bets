@@ -37,6 +37,7 @@ public class Bot {
             amount = Bank;
             Bank = 0;
             _gameData.PotValue += amount;
+            _gameData.PotValueOfHand += amount;
             _gameData.RoundState = BotRoundState.AllIn;
             
             return amount;
