@@ -52,6 +52,9 @@ public class BotSocket {
     }
 
     private void CreateSocket(int port) {
+        //to create bots for testing
+        if (port == -1) return;
+        
         _listener = new TcpListener(IPAddress.Parse(ServerUtils.IP), port);
         _listener.Start();
         Console.WriteLine($"Server started on {ServerUtils.IP}:{port} waiting for connections...");

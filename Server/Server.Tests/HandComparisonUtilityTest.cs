@@ -4,7 +4,6 @@ using Xunit;
 using Server;
 
 public class HandComparisonTes {
-
     private List<Card> make((string, string)[] values) {
         //(value, suit)
         List<Card> result = new();

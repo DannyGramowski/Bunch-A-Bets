@@ -118,7 +118,7 @@ public class Game {
 
     }
 
-    private void PlayHand() {
+    internal void PlayHand() {
         _deck = new Deck();
         foreach (Bot bot in _bots) {
             bot.GameData.NewHand(new List<Card>() { _deck.DrawCard(), _deck.DrawCard() });
@@ -146,13 +146,14 @@ public class Game {
         }
 
 
-        HandleShowdown();
+        HandleShowdown(_bots, _centerCards, _totalPot);
+        _totalPot = 0;
     }
 
     /* Plays a single round of the game.
      * Returns true if the hand ends here (advances immediately to Showdown)
      */
-    private bool PlayRound() {
+    internal bool PlayRound() {
         Console.WriteLine("Beginning Round");
         // TODO Really, this should be a while true and keep going until the bets are set. Also probably needs some more logic for skipping bots who can't bet
         //while all bots are not either folded, all in, or their be meets the pot bet
@@ -223,7 +224,7 @@ public class Game {
         return false;
     }
 
-    private bool EveryoneAllIn()
+    internal bool EveryoneAllIn()
     {
         int notAllInCount = 0;
         foreach (Bot bot in _bots)
@@ -233,50 +234,57 @@ public class Game {
         return notAllInCount <= 1;
     }
 
-    private void HandleShowdown() {
+    internal static void HandleShowdown(List<Bot> bots, List<Card> centerCards, int totalPot) {
         Console.WriteLine("SHOWDOWN TIME BABY");
 
+        var botsCopy = bots.ToList();
 
-        var botsCopy = _bots.ToList();
-
+        var ct = botsCopy.Count(b => b.GameData.RoundState != BotRoundState.Folded && b.GameData.RoundState != BotRoundState.NotPlayed);
+        //protect against everyone being folded if that ever happens
+        if (ct == 0) {
+            foreach (Bot b in botsCopy) {
+                b.GameData.RoundState = BotRoundState.Called;
+            }
+        }
+        
         //I understand this is complicated. Unfortunatley due to edges cases like ties and bots can only win what they bet it is like this.
-        while (_totalPot > 0) {
+        while (totalPot > 0) {
             List<Bot> highestHands = new(); //This will contain 2 bots if there is a tie.
 
             //finds the best hands from all bots that made it to the end
-            foreach (Bot b in _bots) {
+            foreach (Bot b in botsCopy) {
                 if (b.GameData.RoundState == BotRoundState.Folded) continue;
                 if (highestHands.Count == 0) {
                     highestHands.Add(b);
                     continue;
                 }
 
-                var handComparisonResult = HandComparisonUtility.CompareBotHands(highestHands[0], b, _centerCards);
+                var handComparisonResult = HandComparisonUtility.CompareBotHands(highestHands[0], b, centerCards);
                 if (handComparisonResult == HandWinner.Tie) {
                     highestHands.Add(b);
-                } else if (handComparisonResult == HandWinner.Tie) {
+                } else if (handComparisonResult == HandWinner.Player2) {
                     highestHands.Clear();
                     highestHands.Add(b);
                 }
             }
 
             // //This will lose some money do to int division if pot % count != 0. This will only be 1 or 2 cents so its not a big deal
-            var amountPerBot = _totalPot / highestHands.Count;
+            var amountPerBot = totalPot / highestHands.Count;
             foreach (Bot bot in highestHands) {
                 if (amountPerBot > bot.GameData.PotValueOfHand) {
                     var val = bot.GameData.PotValueOfHand;
                     bot.Bank += val;
-                    _totalPot -= val;
+                    totalPot -= val;
                     botsCopy.Remove(bot);
-                    highestHands.Remove(bot);
                 } else {
                     bot.Bank += amountPerBot;
+                    totalPot -= amountPerBot;
                 }
             }
 
             //handle round off error
-            if (_totalPot <= highestHands.Count - 1) {
-                _totalPot = 0;
+            if (totalPot <= highestHands.Count - 1) {
+                totalPot = 0;
             }
         }
     }
@@ -296,7 +304,7 @@ public class Game {
         return isResolved;
     }
 
-    private bool TakeAction(ActionType actionType, int raiseAmount, Bot bot) {
+    internal bool TakeAction(ActionType actionType, int raiseAmount, Bot bot) {
         BotGameData data = bot.GameData;
 
         if (actionType == ActionType.Fold)
@@ -352,7 +360,7 @@ public class Game {
         return true;
     }
 
-    private void BotBet(Bot bot, int amount)
+    internal void BotBet(Bot bot, int amount)
     {
         int actualBetAmount = bot.Bet(amount - bot.GameData.PotValue);
         _totalPot += actualBetAmount;

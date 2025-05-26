@@ -45,6 +45,7 @@ public class Bot {
 
         Bank -= amount;
         _gameData.PotValue += amount;
+        _gameData.PotValueOfHand += amount;
 
         return amount;
     }
