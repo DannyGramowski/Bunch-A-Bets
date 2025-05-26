@@ -169,7 +169,7 @@ public static class HandComparisonUtility {
             }
 
             if (previous.GetNumericValue() - 1 != c.GetNumericValue()) {
-                if (previous.Value == "A" && c.Value == "5") {
+                if (previous.Value == 'A' && c.Value == '5') {
                     previous = c;
                     continue; //Given the sorted precondition, doing this allows A-5 to be valid. 
                 }
