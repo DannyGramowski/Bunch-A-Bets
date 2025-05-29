@@ -80,6 +80,10 @@ public class Bot {
         };
     }
 
+    public override string ToString() {
+        return $"ID: {ID}, Name: {_name}, Bank: {Bank}, Cards: {string.Join(",",GameData.Cards)}";
+    }
+
     public override int GetHashCode() {
         return ID;
     }

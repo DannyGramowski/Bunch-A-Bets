@@ -246,10 +246,15 @@ public class Game {
                 b.GameData.RoundState = BotRoundState.Called;
             }
         }
-        
+
+        int count = 5;// prevent infinite loops
         //I understand this is complicated. Unfortunatley due to edges cases like ties and bots can only win what they bet it is like this.
-        while (totalPot > 0) {
-            List<Bot> highestHands = new(); //This will contain 2 bots if there is a tie.
+        while (totalPot > 0 && count > 0) {
+            //This will contain at least 2 bots if there is a tie.
+            List<Bot> highestHands = new();
+            //This contains the bet value initially.
+            //This acts as the available pot to take from of the losing bots for the winners. In the case of an overflow from the winners, each bots value will contain the value left to disperse.
+            var botBets = botsCopy.ToDictionary(bot => bot.ID, bot => bot.GameData.PotValueOfHand);
 
             //finds the best hands from all bots that made it to the end
             foreach (Bot b in botsCopy) {
@@ -269,23 +274,33 @@ public class Game {
             }
 
             // //This will lose some money do to int division if pot % count != 0. This will only be 1 or 2 cents so its not a big deal
-            var amountPerBot = totalPot / highestHands.Count;
-            foreach (Bot bot in highestHands) {
-                if (amountPerBot > bot.GameData.PotValueOfHand) {
-                    var val = bot.GameData.PotValueOfHand;
-                    bot.Bank += val;
-                    totalPot -= val;
-                    botsCopy.Remove(bot);
-                } else {
-                    bot.Bank += amountPerBot;
-                    totalPot -= amountPerBot;
+            // var amountPerBot = totalPot / highestHands.Count;
+            foreach (Bot winningBot in highestHands) {
+                foreach (Bot bot in botsCopy) {
+                    if (highestHands.Contains(bot)) {
+                        //this will get called multiple times if there is a tie but PotValueOf Hand will be 0 after the first time so it wont do anything
+                        if (bot.GameData.PotValueOfHand == 0) continue;
+                        bot.Bank += bot.GameData.PotValueOfHand;
+                        totalPot -= bot.GameData.PotValueOfHand;
+                        bot.GameData.PotValueOfHand = 0;
+                    } else {
+                        int value = Math.Min(botBets[winningBot.ID], botBets[bot.ID] / highestHands.Count);
+                        winningBot.Bank += value;
+                        totalPot -= value;
+                        bot.GameData.PotValueOfHand -= value;
+
+                        //handle round off error
+                        if (bot.GameData.PotValueOfHand <= highestHands.Count - 1) {
+                            totalPot -= bot.GameData.PotValueOfHand;
+                            bot.GameData.PotValueOfHand = 0;
+                        }
+                    }
                 }
+
+                botsCopy.Remove(winningBot);
             }
 
-            //handle round off error
-            if (totalPot <= highestHands.Count - 1) {
-                totalPot = 0;
-            }
+            count--;
         }
     }
 
