@@ -109,6 +109,7 @@ def register() -> None:
     name = f'Randobot {"".join([str(random.randint(0, 9)) for _ in range(5)] )}'
     print(name)
     req = requests.post(f'http://localhost:5000/register?name={name}')
+
     data = json.loads(req.text)
     print(data)
 
