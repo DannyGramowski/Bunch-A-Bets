@@ -18,9 +18,9 @@ public enum HandRank {
 }
 
 public enum HandWinner {
-    Player1,
-    Tie,
-    Player2
+    Player1 = -1,
+    Tie = 0,
+    Player2 = 1
 }
 
 public static class HandComparisonUtility {
@@ -31,7 +31,7 @@ public static class HandComparisonUtility {
         return CompareHands(GetBestHand(b1.GameData.Cards, centerCards), GetBestHand(b2.GameData.Cards, centerCards));
     }
 
-    public static List<Card> GetBestHand(List<Card> botHand, List<Card> centerCards) {
+    internal static List<Card> GetBestHand(List<Card> botHand, List<Card> centerCards) {
         var combinations = GetCombinations(botHand.Concat(centerCards).ToList(), HAND_SIZE);
         List<Card> bestHand = new ();
 
@@ -49,7 +49,7 @@ public static class HandComparisonUtility {
         return bestHand;
     }
 
-    static IEnumerable<List<Card>> GetCombinations(List<Card> list, int k) {
+    internal static IEnumerable<List<Card>> GetCombinations(List<Card> list, int k) {
         if (k == 0) {
             yield return new ();
         } else {
@@ -63,11 +63,11 @@ public static class HandComparisonUtility {
         }
     }
 
-    public static List<Card> OrderCards(List<Card> cards) {
+    internal static List<Card> OrderCards(List<Card> cards) {
         return cards.OrderByDescending(c => c.GetNumericValue()).ToList();
     }
 
-    public static HandWinner CompareHands(List<Card> h1, List<Card> h2) {
+    internal static HandWinner CompareHands(List<Card> h1, List<Card> h2) {
         if (h1.Count != 5 || h2.Count != 5) {
             throw new Exception("hands must be 5 cards");
         }
@@ -127,7 +127,7 @@ public static class HandComparisonUtility {
         return HandleTie(h1, h2);
     }
 
-    public static HandWinner HandleTie(List<Card> h1, List<Card> h2) {
+    internal static HandWinner HandleTie(List<Card> h1, List<Card> h2) {
         Debug.Assert(h1.Count == h2.Count, $"hand counts must be equal. {h1.Count} != {h2.Count}");
     
         if (h1.Count == 0) {
@@ -155,7 +155,7 @@ public static class HandComparisonUtility {
 
     }
 
-    public static bool HandIsStraight(List<Card> hand) {
+    internal static bool HandIsStraight(List<Card> hand) {
         //hand must be sorted in descending order of value with Ace high.
         //will still work with Ace-5 though
         if (hand.Count != 5) return false;
@@ -169,7 +169,7 @@ public static class HandComparisonUtility {
             }
 
             if (previous.GetNumericValue() - 1 != c.GetNumericValue()) {
-                if (previous.Value == "A" && c.Value == "5") {
+                if (previous.Value == 'A' && c.Value == '5') {
                     previous = c;
                     continue; //Given the sorted precondition, doing this allows A-5 to be valid. 
                 }
@@ -183,7 +183,7 @@ public static class HandComparisonUtility {
     }
 
 
-    public static bool HandIsFlush(List<Card> hand) {
+    internal static bool HandIsFlush(List<Card> hand) {
         if (hand.Count != 5) return false;
 
         Card? previous = null;
@@ -200,7 +200,7 @@ public static class HandComparisonUtility {
         return true;
     }
 
-    public static (HandRank, int) GetBestOfKind(List<Card> hand) {
+    internal static (HandRank, int) GetBestOfKind(List<Card> hand) {
         //<numericvalue, count> where numeric value is the value returned by card.GetNumericValue()
         Dictionary<int, int> count = new();
 
@@ -224,7 +224,7 @@ public static class HandComparisonUtility {
             }
         }
 
-        //I understand this is confusing. The gist of it is it finds the highest count then
+        //The gist of it is it finds the highest count then
         //using the total cards in the hand and the number of different values of cards to determine the HandRank
         if (highestCount == 4) {
             return (HandRank.FourOfKind, cardValueOfHighestCount);

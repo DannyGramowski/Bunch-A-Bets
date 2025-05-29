@@ -37,6 +37,7 @@ public class Bot {
             amount = Bank;
             Bank = 0;
             _gameData.PotValue += amount;
+            _gameData.PotValueOfHand += amount;
             _gameData.RoundState = BotRoundState.AllIn;
             
             return amount;
@@ -44,6 +45,7 @@ public class Bot {
 
         Bank -= amount;
         _gameData.PotValue += amount;
+        _gameData.PotValueOfHand += amount;
 
         return amount;
     }
@@ -76,6 +78,10 @@ public class Bot {
             {"state", _gameData.RoundState},
             {"pot_value", _gameData.PotValue}
         };
+    }
+
+    public override string ToString() {
+        return $"ID: {ID}, Name: {_name}, Bank: {Bank}, Cards: {string.Join(",",GameData.Cards)}";
     }
 
     public override int GetHashCode() {

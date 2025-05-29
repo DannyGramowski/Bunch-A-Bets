@@ -4,12 +4,11 @@ using Xunit;
 using Server;
 
 public class HandComparisonTes {
-
     private List<Card> make((string, string)[] values) {
         //(value, suit)
         List<Card> result = new();
         foreach (var pair in values) {
-            result.Add(new Card(pair.Item1, pair.Item2));
+            result.Add(new Card(pair.Item1[0], pair.Item2[0]));
         }
 
         return HandComparisonUtility.OrderCards(result);
@@ -17,8 +16,8 @@ public class HandComparisonTes {
 
     [Fact]
     public void TestFlush() {
-        List<Card> flush = make([("2", "C"), ("3", "C"), ("4", "C"), ("5", "C"), ("10", "C")]);
-        List<Card> notFlush = make([("2", "C"), ("3", "S"), ("4", "C"), ("5", "C"), ("10", "C")]);
+        List<Card> flush = make([("2", "C"), ("3", "C"), ("4", "C"), ("5", "C"), ("T", "C")]);
+        List<Card> notFlush = make([("2", "C"), ("3", "S"), ("4", "C"), ("5", "C"), ("T", "C")]);
         Assert.True(HandComparisonUtility.HandIsFlush(flush));
         Assert.True(!HandComparisonUtility.HandIsFlush(notFlush));
     }
@@ -29,8 +28,8 @@ public class HandComparisonTes {
 
         List<Card> straight = make([("2", "C"), ("3", "C"), ("4", "C"), ("5", "C"), ("6", "C")]);
         List<Card> straightAceFront = make([("A", "C"), ("2", "C"), ("3", "C"), ("4", "C"), ("5", "C")]);
-        List<Card> straightAceBack = make([("10", "C"), ("J", "C"), ("Q", "C"), ("K", "C"), ("A", "C")]);
-        List<Card> notStraight = make([("2", "C"), ("3", "S"), ("4", "C"), ("5", "C"), ("10", "C")]);
+        List<Card> straightAceBack = make([("T", "C"), ("J", "C"), ("Q", "C"), ("K", "C"), ("A", "C")]);
+        List<Card> notStraight = make([("2", "C"), ("3", "S"), ("4", "C"), ("5", "C"), ("T", "C")]);
         List<Card> notStraightSameValue = make([("2", "C"), ("3", "S"), ("3", "C"), ("4", "C"), ("5", "C")]);
 
         Assert.True(HandComparisonUtility.HandIsStraight(straight));
@@ -77,26 +76,26 @@ public class HandComparisonTes {
 
     [Fact]
     public void TestCompareHands() {
-        List<Card> royalflush = make([("A", "C"), ("K", "C"), ("Q", "C"), ("J", "C"), ("10", "C")]);
-        List<Card> straightflush = make([("10", "C"), ("9", "C"), ("8", "C"), ("7", "C"), ("6", "C")]);
-        List<Card> straightflushhigher = make([("10", "C"), ("9", "C"), ("8", "C"), ("7", "C"), ("J", "C")]);
-        List<Card> four = make([("10", "C"), ("10", "C"), ("10", "C"), ("10", "C"), ("4", "C")]);
-        List<Card> fourhigher = make([("10", "C"), ("10", "C"), ("10", "C"), ("10", "C"), ("8", "C")]);
-        List<Card> fullhouse = make([("10", "C"), ("10", "C"), ("10", "C"), ("8", "C"), ("8", "C")]);
-        List<Card> fullhousehigher = make([("10", "C"), ("10", "C"), ("10", "C"), ("9", "C"), ("9", "C")]);
+        List<Card> royalflush = make([("A", "C"), ("K", "C"), ("Q", "C"), ("J", "C"), ("T", "C")]);
+        List<Card> straightflush = make([("T", "C"), ("9", "C"), ("8", "C"), ("7", "C"), ("6", "C")]);
+        List<Card> straightflushhigher = make([("T", "C"), ("9", "C"), ("8", "C"), ("7", "C"), ("J", "C")]);
+        List<Card> four = make([("T", "C"), ("T", "C"), ("T", "C"), ("T", "C"), ("4", "C")]);
+        List<Card> fourhigher = make([("T", "C"), ("T", "C"), ("T", "C"), ("T", "C"), ("8", "C")]);
+        List<Card> fullhouse = make([("T", "C"), ("T", "C"), ("T", "C"), ("8", "C"), ("8", "C")]);
+        List<Card> fullhousehigher = make([("T", "C"), ("T", "C"), ("T", "C"), ("9", "C"), ("9", "C")]);
         List<Card> flush = make([("K", "C"), ("6", "C"), ("4", "C"), ("8", "C"), ("J", "C")]);
         List<Card> flushhigher = make([("A", "C"), ("6", "C"), ("4", "C"), ("8", "C"), ("J", "C")]);
-        List<Card> straight = make([("10", "C"), ("9", "C"), ("8", "C"), ("7", "C"), ("6", "C")]);
-        List<Card> straighthigher = make([("10", "C"), ("9", "C"), ("8", "C"), ("7", "C"), ("J", "C")]);
-        List<Card> three = make([("10", "C"), ("10", "C"), ("10", "C"), ("7", "C"), ("4", "C")]);
-        List<Card> threehigher = make([("10", "C"), ("10", "C"), ("10", "C"), ("7", "C"), ("J", "C")]);
-        List<Card> twopair = make([("10", "C"), ("10", "C"), ("7", "C"), ("7", "C"), ("4", "C")]);
-        List<Card> twopairhigherhighcard = make([("10", "C"), ("10", "C"), ("7", "C"), ("7", "C"), ("J", "C")]);
-        List<Card> twopairhigherpair = make([("10", "C"), ("10", "C"), ("8", "C"), ("8", "C"), ("J", "C")]);
-        List<Card> pair = make([("10", "C"), ("10", "C"), ("8", "C"), ("4", "C"), ("3", "C")]);
-        List<Card> pairhigher = make([("10", "C"), ("10", "C"), ("8", "C"), ("4", "C"), ("5", "C")]);
-        List<Card> highcard = make([("J", "C"), ("10", "C"), ("8", "C"), ("4", "C"), ("5", "C")]);
-        List<Card> highcardhigher = make([("A", "C"), ("10", "C"), ("8", "C"), ("4", "C"), ("5", "C")]);
+        List<Card> straight = make([("T", "C"), ("9", "C"), ("8", "C"), ("7", "C"), ("6", "C")]);
+        List<Card> straighthigher = make([("T", "C"), ("9", "C"), ("8", "C"), ("7", "C"), ("J", "C")]);
+        List<Card> three = make([("T", "C"), ("T", "C"), ("T", "C"), ("7", "C"), ("4", "C")]);
+        List<Card> threehigher = make([("T", "C"), ("T", "C"), ("T", "C"), ("7", "C"), ("J", "C")]);
+        List<Card> twopair = make([("T", "C"), ("T", "C"), ("7", "C"), ("7", "C"), ("4", "C")]);
+        List<Card> twopairhigherhighcard = make([("T", "C"), ("T", "C"), ("7", "C"), ("7", "C"), ("J", "C")]);
+        List<Card> twopairhigherpair = make([("T", "C"), ("T", "C"), ("8", "C"), ("8", "C"), ("J", "C")]);
+        List<Card> pair = make([("T", "C"), ("T", "C"), ("8", "C"), ("4", "C"), ("3", "C")]);
+        List<Card> pairhigher = make([("T", "C"), ("T", "C"), ("8", "C"), ("4", "C"), ("5", "C")]);
+        List<Card> highcard = make([("J", "C"), ("T", "C"), ("8", "C"), ("4", "C"), ("5", "C")]);
+        List<Card> highcardhigher = make([("A", "C"), ("T", "C"), ("8", "C"), ("4", "C"), ("5", "C")]);
 
 
         Assert.Equal(HandWinner.Tie, HandComparisonUtility.HandleTie(royalflush, royalflush));
@@ -139,15 +138,15 @@ public class HandComparisonTes {
 
     [Fact]
     public void TestGetBestHand() {
-        List<Card> cards1 = make([("J", "C"), ("10", "C"), ("8", "C"), ("7", "C"), ("5", "C")]);
-        List<Card> cards2 = make([("J", "D"), ("10", "S"), ("9", "C"), ("7", "C"), ("4", "C")]);
+        List<Card> cards1 = make([("J", "C"), ("T", "C"), ("8", "C"), ("7", "C"), ("5", "C")]);
+        List<Card> cards2 = make([("J", "D"), ("T", "S"), ("9", "C"), ("7", "C"), ("4", "C")]);
 
-        List<Card> h1 = make([("9", "H"), ("10", "C")]);
+        List<Card> h1 = make([("9", "H"), ("T", "C")]);
         List<Card> h2 = make([("9", "H"), ("9", "C")]);
 
-        Assert.Equal(make([("J", "C"), ("10", "C"), ("8", "C"), ("7", "C"), ("10", "C")]), HandComparisonUtility.GetBestHand(h1, cards1));
-        Assert.Equal(make([("J", "C"), ("10", "C"), ("8", "C"), ("7", "C"), ("9", "C")]), HandComparisonUtility.GetBestHand(h2, cards1));
-        Assert.Equal(make([("10", "C"), ("J", "D"), ("10", "S"), ("9", "H"), ("9", "C")]), HandComparisonUtility.GetBestHand(h1, cards2));
+        Assert.Equal(make([("J", "C"), ("T", "C"), ("8", "C"), ("7", "C"), ("T", "C")]), HandComparisonUtility.GetBestHand(h1, cards1));
+        Assert.Equal(make([("J", "C"), ("T", "C"), ("8", "C"), ("7", "C"), ("9", "C")]), HandComparisonUtility.GetBestHand(h2, cards1));
+        Assert.Equal(make([("T", "C"), ("J", "D"), ("T", "S"), ("9", "H"), ("9", "C")]), HandComparisonUtility.GetBestHand(h1, cards2));
 
 
 
