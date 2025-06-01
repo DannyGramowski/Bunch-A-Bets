@@ -29,7 +29,7 @@ public class Epic
         lock (_bots)
         {
             Game game = new Game(_bots, false);
-            game.PlayGame();
+            game.PlayGame(6);
         }
         Console.WriteLine("Finished Test Game");
         foreach (Bot b in _bots)
@@ -50,7 +50,7 @@ public class Epic
             lock (_bots)
             {
                 Game game = new Game(_bots, true);
-                game.PlayGame();
+                game.PlayGame(6);
             }
         }
     }

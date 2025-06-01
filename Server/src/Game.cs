@@ -106,9 +106,9 @@ public class Game {
         _deck = new Deck();
     }
 
-    public void PlayGame() {
+    public void PlayGame(int numGames) {
         _logs = new List<string>();
-        for (int i = 0; i < _bots.Count; i++) {//TODO is this correct. This doesn't guarentee 6 games
+        for (int i = 0; i < numGames; i++) {
 
             PlayHand();
 
