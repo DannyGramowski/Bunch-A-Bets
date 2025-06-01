@@ -3,11 +3,13 @@ import requests
 import json
 import random
 import time
+import sys
 
 client_socket: socket.socket = None
+HOST_ADDR = '127.0.0.1'  # Must match the server's IP; note that this is provided through the dockerfile
 
 def create_websocket(port):
-    host = '127.0.0.1'  # Must match the server's IP
+    host = HOST_ADDR
 
     # Create a socket object
     global client_socket
@@ -111,7 +113,7 @@ def send_message(msg: dict):
 def register() -> None:
     name = f'Randobot {"".join([str(random.randint(0, 9)) for _ in range(5)] )}'
     print(name)
-    req = requests.post(f'http://127.0.0.1:5000/register', json={
+    req = requests.post(f'http://{HOST_ADDR}:5000/register', json={
         'name': name,
         'test_game_size': 6
     })
@@ -126,4 +128,6 @@ def main():
     print('Shutting down bot.')
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        HOST_ADDR = sys.argv[1]
     main()
