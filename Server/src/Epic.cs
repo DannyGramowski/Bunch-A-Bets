@@ -5,7 +5,7 @@ using System.Text.Json;
 
 public class Epic
 {
-    public const int STARTING_BANK = 500;
+    public const int STARTING_BANK = 5000;
     private List<Bot> _bots = new List<Bot>();
     public int requestedPlayers;
     private List<Process?> botProcesses;
@@ -29,8 +29,8 @@ public class Epic
         lock (_bots)
         {
             Game game = new Game(_bots, false);
-            game.PlayGame(6);
-        }
+            game.PlayGame(24);
+        }   
         Console.WriteLine("Finished Test Game");
         foreach (Bot b in _bots)
         {

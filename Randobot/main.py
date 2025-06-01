@@ -57,7 +57,10 @@ def handle_request_action(msg: dict) -> None:
     # You should probably not do that.
     random_value = random.randint(1, 10)
     if random_value <= 2:
-        take_action('raise', msg['highest_bid_value'] + 1)
+        raise_amount = random.randint(1, 21) * 10
+        if raise_amount > 200:
+            raise_amount = 2000 # very big bet; if this is larger than your bank, you'll be all in
+        take_action('raise', msg['highest_bid_value'] + raise_amount)
     elif random_value <= 4:
         take_action('fold')
         send_chat(f"I always get the worst cards!")

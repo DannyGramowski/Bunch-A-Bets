@@ -47,6 +47,7 @@ public class HttpServer {
             body.TryGetValue("name", out name);
 
             if ((name.ValueKind != JsonValueKind.String) || string.IsNullOrEmpty(name.GetString())) return Results.BadRequest(new { error = "Name is required" });
+            if (name.GetString()?.Length > 30) return Results.BadRequest(new { error = "Names have a max length of 30 characters." });
 
             JsonElement testGameSize;
             body.TryGetValue("test_game_size", out testGameSize);

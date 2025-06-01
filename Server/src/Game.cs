@@ -72,8 +72,8 @@ public class Game {
     private const int CHAT_TIMEOUT_MS = 5 * 1000;
     private const int ACTION_TIMEOUT_MS = 3 * 1000;
     private const int ACTION_MIN_TIMEOUT_MS = 1 * 1000;
-    private const int BIG_BLIND = 10;
-    private const int SMALL_BLIND = 5;
+    private const int BIG_BLIND = 100;
+    private const int SMALL_BLIND = 50;
 
 
     private List<Bot> _bots;
