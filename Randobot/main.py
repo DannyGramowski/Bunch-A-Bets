@@ -110,7 +110,7 @@ def register() -> None:
     print(name)
     req = requests.post(f'http://127.0.0.1:5000/register', json={
         'name': name,
-        'test_game_size': 2
+        'test_game_size': 6
     })
 
     data = json.loads(req.text)

@@ -11,7 +11,8 @@ using System.Threading;
 using Json = Dictionary<string, object>;
 using System.Text.RegularExpressions;
 
-public class BotSocket {
+public class BotSocket
+{
 
     private TcpListener? _listener;
     private TcpClient? _client;
@@ -22,7 +23,8 @@ public class BotSocket {
     private Queue<Json> _outgoingMessages = new();
     public bool Ready = false;
 
-    public BotSocket(int port, Bot bot) {
+    public BotSocket(int port, Bot bot)
+    {
         Console.WriteLine("Init botsocket");
         try
         {
@@ -39,26 +41,34 @@ public class BotSocket {
     public bool Connected => _stream != null && (_client?.Connected ?? false);
 
 
-    public void SendMessage(Json message) {
-        lock (_outgoingMessages) {
+    public void SendMessage(Json message)
+    {
+        lock (_outgoingMessages)
+        {
             _outgoingMessages.Enqueue(message);
         }
     }
 
-    public Json ReadMessage() {
-        lock (_incomingMessages) {
+    public Json ReadMessage()
+    {
+        lock (_incomingMessages)
+        {
             return _incomingMessages.Dequeue();
         }
     }
 
-    public bool HasMessageReceived() {
+    public bool HasMessageReceived()
+    {
         lock (_incomingMessages) return _incomingMessages.Count > 0;
     }
 
-    private void CreateSocket(int port, Bot bot) {
+    private void CreateSocket(int port, Bot bot)
+    {
         //to create bots for testing
         if (port == -1) return;
-        
+
+        // Needs error handling here in case we accidentally double-assigned a port
+
         _listener = new TcpListener(IPAddress.Parse(ServerUtils.IP), port);
         _listener.Start();
         Console.WriteLine($"Server started on {ServerUtils.IP}:{port} waiting for connections...");
@@ -103,7 +113,8 @@ public class BotSocket {
         }
     }
 
-    private void SendMessageHelper(Json message) {
+    private void SendMessageHelper(Json message)
+    {
         string json = JsonSerializer.Serialize(message);
         byte[] data = Encoding.UTF8.GetBytes(json + "\n");
         if (_stream == null) return;
@@ -122,9 +133,11 @@ public class BotSocket {
         }
     }
 
-    public List<Json> ReceiveMessage() {
+    public List<Json> ReceiveMessage()
+    {
         string? json = null;
-        try {
+        try
+        {
             if (_stream == null || !_stream.DataAvailable) return new List<Json>();
 
             var buffer = new byte[4096];
@@ -158,9 +171,22 @@ public class BotSocket {
 
             return messages.Select(m => JsonSerializer.Deserialize<Json>(m) ?? new()).ToList();
         }
-        catch {
+        catch
+        {
             Console.WriteLine("Invalid received object " + json);
         }
         return new List<Json>();
+    }
+
+    public void CloseSocket()
+    {
+        try
+        {
+            _listener?.Stop();
+        }
+        catch
+        {
+            Console.WriteLine("Error: Failed to close socket with port " + _port); // womp womp
+        }
     }
 }

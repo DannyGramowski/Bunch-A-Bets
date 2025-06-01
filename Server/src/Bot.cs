@@ -131,4 +131,9 @@ public class Bot
             epic.TryStart();
         }
     }
+
+    public void CloseSocket()
+    {
+        _socket.CloseSocket();
+    }
 }

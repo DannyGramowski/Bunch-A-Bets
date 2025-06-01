@@ -28,10 +28,14 @@ public class Epic
     {
         lock (_bots)
         {
-            Game game = new Game(_bots);
+            Game game = new Game(_bots, false);
             game.PlayGame();
         }
         Console.WriteLine("Finished Test Game");
+        foreach (Bot b in _bots)
+        {
+            b.CloseSocket();
+        }
         foreach (Process? p in botProcesses)
         {
             p?.Kill();
@@ -45,7 +49,7 @@ public class Epic
             // TODO specify 15 games, and then finals
             lock (_bots)
             {
-                Game game = new Game(_bots);
+                Game game = new Game(_bots, true);
                 game.PlayGame();
             }
         }

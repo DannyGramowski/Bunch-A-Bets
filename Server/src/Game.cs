@@ -87,17 +87,19 @@ public class Game {
     private int _numberTimesRaiseThisRound = 0;
 
     private static int _idCounter = 0;
+    private bool _isTournament;
 
     private List<string> _logs = new List<string>();
 
     /**
      * bots: need to add in random order
      */
-    public Game(List<Bot> bots) {
+    public Game(List<Bot> bots, bool isTournament) {
         if (bots.Count < 2 || bots.Count > 6) {
             Console.Error.WriteLine("Invalid number of bots. must be between 2 and 6.");
         }
 
+        _isTournament = isTournament;
         _bots = bots;
         _gameId = _idCounter;
         _idCounter++;
@@ -161,6 +163,14 @@ public class Game {
      */
     internal bool PlayRound() {
         Console.WriteLine("Beginning Round");
+        
+        //clear bot pots and reset round states for those still playing
+        foreach (Bot bot in _bots)
+        {
+            bot.GameData.NewRound();
+        }
+        _highestBidValue = 0;
+
         // TODO Really, this should be a while true and keep going until the bets are set. Also probably needs some more logic for skipping bots who can't bet
         //while all bots are not either folded, all in, or their be meets the pot bet
         _numberTimesRaiseThisRound = 0;
@@ -199,12 +209,17 @@ public class Game {
                     Thread.Sleep(5);
                 }
                 // wait off remainder of time
-                while (true) {
-                    if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_MIN_TIMEOUT_MS)) {
-                        break;
+                if (_isTournament)
+                {
+                    while (true)
+                    {
+                        if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_MIN_TIMEOUT_MS))
+                        {
+                            break;
+                        }
+                        GetAnyMessages(null); // Allows for sending messages during this time
+                        Thread.Sleep(5);
                     }
-                    GetAnyMessages(null); // Allows for sending messages during this time
-                    Thread.Sleep(5);
                 }
                 GetAnyMessages(null); // Allow for one chance to send messages before next round, that way "reaction" messages get sent here
             }
@@ -215,13 +230,6 @@ public class Game {
         {
             return true;
         }
-
-        //clear bot pots and reset round states for those still playing
-        foreach (Bot bot in _bots)
-        {
-            bot.GameData.NewRound();
-        }
-        _highestBidValue = 0;
         return false;
     }
 

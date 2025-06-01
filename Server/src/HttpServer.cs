@@ -10,6 +10,11 @@ public class HttpServer {
     // private WebApplication _app;
     // private Func<string, bool> _registerBot;
 
+    private static readonly int START_EXTERNAL_PORT = 26100;
+    private static readonly int STOP_EXTERNAL_PORT = 26199;
+    private static readonly int START_INTERNAL_PORT = 26200;
+    private static readonly int STOP_INTERNAL_PORT = 26600;
+
     private static int GLOBAL_ID = 1;
 
     /**
@@ -54,7 +59,7 @@ public class HttpServer {
             }
 
             int botId = GLOBAL_ID;
-            int portNumber = GetOpenPort();
+            int portNumber = GetOpenPort(isRandobot);
             Bot newBot = new Bot(botId, portNumber, name.GetString(), Epic.STARTING_BANK);
 
             epicFactory.RegisterBot(newBot, gameSize, isRandobot);
@@ -69,11 +74,26 @@ public class HttpServer {
         app.Run();
     }
 
-    private static int GetOpenPort() {
-        var listener = new TcpListener(IPAddress.Loopback, 0); // Port 0 = let OS assign
-        listener.Start();
-        int port = ((IPEndPoint)listener.LocalEndpoint).Port;
-        listener.Stop();
-        return port;
+    private static int GetOpenPort(bool useInternal) {
+        int randomPort = -1;
+        int startPort = useInternal ? START_INTERNAL_PORT : START_EXTERNAL_PORT;
+        int stopPort = useInternal ? STOP_INTERNAL_PORT : STOP_EXTERNAL_PORT;
+        for (int ct = 0; ct < 300; ct ++)
+        {
+            randomPort = Random.Shared.Next(startPort, stopPort);
+            try
+            {
+                var listener = new TcpListener(IPAddress.Any, randomPort); // Port 0 = let OS assign
+                listener.Start();
+                listener.Stop();
+                break;
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("Tried to assign to in-use port " + randomPort.ToString());
+            }
+        }
+        
+        return randomPort;
     }
 }
