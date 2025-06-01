@@ -84,6 +84,7 @@ public class Game {
     private RoundStage _roundStage = RoundStage.PreFlop;
     private int _totalPot = 0;
     private int _highestBidValue = 0;
+    private int _numberTimesRaiseThisRound = 0;
 
     private static int _idCounter = 0;
 
@@ -162,23 +163,21 @@ public class Game {
         Console.WriteLine("Beginning Round");
         // TODO Really, this should be a while true and keep going until the bets are set. Also probably needs some more logic for skipping bots who can't bet
         //while all bots are not either folded, all in, or their be meets the pot bet
+        _numberTimesRaiseThisRound = 0;
         bool continueRound = true;
-        while (continueRound)
-        {
+        while (continueRound) {
+            Console.WriteLine($"numberRoundTime{_numberTimesRaiseThisRound}");
             continueRound = false;
-            foreach (Bot bot in _bots)
-            {
+            foreach (Bot bot in _bots) {
                 //If the bot has played previous but someone after raised, they get another chance to call, raise or fold
                 // TODO also, if all other bots have folded or all in, the round (and the entire hand) should be finished immediately - do this by returning True to PlayRound()
-                if (EveryoneAllIn())
-                {
+                if (EveryoneAllIn()) {
                     return true;
                 }
                 if (!(bot.GameData.RoundState == BotRoundState.NotPlayed || (bot.GameData.StillBidding() && bot.GameData.PotValue != _highestBidValue))) continue;
                 continueRound = true;
 
-                if (bot.Bank == 0)
-                {
+                if (bot.Bank == 0) {
                     TakeAction(ActionType.Fold, 0, bot);
                     continue;
                 }
@@ -190,22 +189,18 @@ public class Game {
                 bot.SendMessage(GetBotRequestActionData(bot));
 
                 DateTime startClock = DateTime.Now;
-                while (true)
-                {
+                while (true) {//shame
                     bool actionTaken = GetAnyMessages(bot);
                     if (actionTaken) { break; }
-                    if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_TIMEOUT_MS))
-                    {
+                    if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_TIMEOUT_MS)) {
                         TakeAction(ActionType.Fold, 0, bot); // womp womp
                         break;
                     }
                     Thread.Sleep(5);
                 }
                 // wait off remainder of time
-                while (true)
-                {
-                    if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_MIN_TIMEOUT_MS))
-                    {
+                while (true) {
+                    if (DateTime.Now > startClock + TimeSpan.FromMilliseconds(ACTION_MIN_TIMEOUT_MS)) {
                         break;
                     }
                     GetAnyMessages(null); // Allows for sending messages during this time
@@ -213,6 +208,7 @@ public class Game {
                 }
                 GetAnyMessages(null); // Allow for one chance to send messages before next round, that way "reaction" messages get sent here
             }
+            _numberTimesRaiseThisRound++;
         }
 
         if (EveryoneAllIn())
@@ -337,7 +333,7 @@ public class Game {
         }
         else
         {
-            if (actionType == ActionType.Call)
+            if (actionType == ActionType.Call || _numberTimesRaiseThisRound >= 5)
             {
                 data.RoundState = BotRoundState.Called;
                 raiseAmount = _highestBidValue;
@@ -349,7 +345,6 @@ public class Game {
                     SendErrorMessage(bot, ErrorType.InvalidInput);
                     return false;
                 }
-
                 data.RoundState = BotRoundState.Raised;
             }
 
