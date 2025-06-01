@@ -20,14 +20,18 @@ public class BotSocket {
 
     private Queue<Json> _incomingMessages = new();
     private Queue<Json> _outgoingMessages = new();
+    public bool Ready = false;
 
-
-    public BotSocket(int port) {
-        try {
+    public BotSocket(int port, Bot bot) {
+        Console.WriteLine("Init botsocket");
+        try
+        {
             _port = port;
-            Thread thread = new Thread(() => CreateSocket(port));
+            Thread thread = new Thread(() => CreateSocket(port, bot));
             thread.Start();
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             Console.WriteLine("Error initializing bot: " + e);
         }
     }
@@ -51,7 +55,7 @@ public class BotSocket {
         lock (_incomingMessages) return _incomingMessages.Count > 0;
     }
 
-    private void CreateSocket(int port) {
+    private void CreateSocket(int port, Bot bot) {
         //to create bots for testing
         if (port == -1) return;
         
@@ -60,12 +64,17 @@ public class BotSocket {
         Console.WriteLine($"Server started on {ServerUtils.IP}:{port} waiting for connections...");
 
         _client = _listener.AcceptTcpClient();
+        Console.WriteLine("Getting Stream");
         _stream = _client.GetStream();
+        Console.WriteLine("GOT STREAM");
+        Ready = true;
         Console.WriteLine("Client connected on port " + port);
 
         SendMessage(new Json() { { "Welcome", "hi" } });
+        bot.TryStartEpic();
 
-        while (true) {
+        while (true)
+        {
             if (_outgoingMessages.Count > 0)
             {
                 Json outgoingMessage;
@@ -78,8 +87,10 @@ public class BotSocket {
             }
 
             List<Json> incomingMessage = ReceiveMessage();
-            if (incomingMessage.Count > 0) {
-                lock (_incomingMessages) {
+            if (incomingMessage.Count > 0)
+            {
+                lock (_incomingMessages)
+                {
                     foreach (Json j in incomingMessage)
                     {
                         _incomingMessages.Enqueue(j);
@@ -95,9 +106,20 @@ public class BotSocket {
     private void SendMessageHelper(Json message) {
         string json = JsonSerializer.Serialize(message);
         byte[] data = Encoding.UTF8.GetBytes(json + "\n");
-        if (_stream == null) return; // TODO this doesn't fully handle when bots close connections
-        _stream.Write(data, 0, data.Length);
-        _stream.Flush();
+        if (_stream == null) return;
+        try // TODO situations like this can cause crashes throughout the program - need a better approach to error handling throughout
+        {
+            _stream.Write(data, 0, data.Length);
+            _stream.Flush();
+        }
+        catch (IOException e)
+        {
+            Console.WriteLine("Error when sending message to bot: " + e.Message);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Uncaught error when sending message to bot: " + e.Message);
+        }
     }
 
     public List<Json> ReceiveMessage() {

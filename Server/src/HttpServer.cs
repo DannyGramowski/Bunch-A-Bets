@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace Server;
 
@@ -9,12 +10,16 @@ public class HttpServer {
     // private WebApplication _app;
     // private Func<string, bool> _registerBot;
 
+    private static int GLOBAL_ID = 1;
+
     /**
      * This is a blocking call
      * registerBot: function that takes in string name and returns tuple of (id, portNumber)
      */
-    public static void Run(List<Bot> tourneyBots) {
-        var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
+    public static void Run(EpicFactory epicFactory)
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
             Args = new[] { $"ASPNETCORE_URLS={ServerUtils.IP}:5000" },
             ApplicationName = "HttpRegisterServer",
             ContentRootPath = Directory.GetCurrentDirectory(),
@@ -22,33 +27,43 @@ public class HttpServer {
         });
         var app = builder.Build();
 
-        app.MapPost("/register", (HttpRequest req) => {
-            string? name = req.Query["name"];
+        app.MapPost("/register", async (HttpRequest req) =>
+        {
+            bool isRandobot = req.HttpContext.Connection.RemoteIpAddress?.ToString() == "127.0.0.1"; // Please do not attempt to forge this, it's important to prevent recursive logic in game testing
+            string? bodyStr = await (new StreamReader(req.Body).ReadToEndAsync());
+            Console.WriteLine(bodyStr);
+            if (bodyStr == null)
+            {
+                return Results.BadRequest(new { error = "Request body is required" });
+            }
+            Dictionary<string, JsonElement> body = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(bodyStr);
 
-            if (string.IsNullOrEmpty(name)) return Results.BadRequest(new { error = "Name is required" });
+            JsonElement name;
+            body.TryGetValue("name", out name);
 
-            int botId = tourneyBots.Count;
-            int portNumber = GetOpenPort();
-            Bot newBot = new Bot(botId, portNumber, name, Epic.STARTING_BANK);
+            if ((name.ValueKind != JsonValueKind.String) || string.IsNullOrEmpty(name.GetString())) return Results.BadRequest(new { error = "Name is required" });
 
-            lock (tourneyBots) {
-                tourneyBots.Add(newBot);
+            JsonElement testGameSize;
+            body.TryGetValue("test_game_size", out testGameSize);
+
+            int gameSize = 6;
+
+            if ((testGameSize.ValueKind == JsonValueKind.Number) && testGameSize.GetInt32() > 1 && testGameSize.GetInt32() <= 6)
+            {
+                gameSize = testGameSize.GetInt32();
             }
 
-            var data = new { id = tourneyBots.Count, portNumber = portNumber };
+            int botId = GLOBAL_ID;
+            int portNumber = GetOpenPort();
+            Bot newBot = new Bot(botId, portNumber, name.GetString(), Epic.STARTING_BANK);
+
+            epicFactory.RegisterBot(newBot, gameSize, isRandobot);
+
+            var data = new { id = GLOBAL_ID, portNumber = portNumber };
+
+            GLOBAL_ID++;
+
             return Results.Json(data);
-        });
-
-        app.MapDelete("/register", (HttpRequest req) => {
-            string? idStr = req.Query["id"];
-
-            if (string.IsNullOrEmpty(idStr)) return Results.BadRequest(new { error = "id is required" });
-            int id = int.Parse(idStr);
-
-            Bot botToRemove = tourneyBots.Find(bot => bot.ID == id) ?? null;
-            if (botToRemove == null) return Results.BadRequest(new { error = "Bot not found" });
-            tourneyBots.Remove(botToRemove);
-            return Results.Ok();
         });
 
         app.Run();

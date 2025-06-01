@@ -1,45 +1,77 @@
 ﻿namespace Server;
 
+using System.Diagnostics;
 using System.Text.Json;
 
-public class Epic {
+public class Epic
+{
     public const int STARTING_BANK = 500;
     private List<Bot> _bots = new List<Bot>();
-    private Game _game1;
+    public int requestedPlayers;
+    private List<Process?> botProcesses;
+    private EpicFactory factory;
 
-    public Epic() {
-        new Thread(() => HttpServer.Run(_bots)).Start();
-
+    public Epic(int requestedPlayers, EpicFactory epicFactory)
+    {
+        this.requestedPlayers = requestedPlayers;
+        this.botProcesses = new List<Process?>();
+        this.factory = epicFactory;
         Thread.Sleep(2000);
-        RandobotService.CreateRandobot();
-        RandobotService.CreateRandobot();
-        RandobotService.CreateRandobot();
-        RandobotService.CreateRandobot();
-        RandobotService.CreateRandobot();
-        RandobotService.CreateRandobot();
+    }
 
+    public void SetProcesses(List<Process?> botProcesses)
+    {
+        this.botProcesses = botProcesses;
+    }
+
+    public void RunTest()
+    {
+        lock (_bots)
+        {
+            Game game = new Game(_bots);
+            game.PlayGame();
+        }
+        Console.WriteLine("Finished Test Game");
+        foreach (Process? p in botProcesses)
+        {
+            p?.Kill();
+        }
+    }
+
+    public void RunTournament()
+    {
         while (true)
         {
-            string input = Console.ReadLine(); // Blocks until input is received
-            Console.WriteLine("You typed: " + input);
-            Console.WriteLine(_bots.Count);
+            // TODO specify 15 games, and then finals
             lock (_bots)
             {
                 Game game = new Game(_bots);
                 game.PlayGame();
-
-                //need to detect start game from standard in to actuall start the game after everyone has registered
-                //probably wait until both games are finished before starting new ones after the epic has begun
-                // foreach (Bot bot in _bots)
-                // {
-                //     if (bot.HasMessageReceived())
-                //     {
-                //         var msg = bot.ReceiveMessage();
-                //         Console.WriteLine($"msg received from bot: {bot.Name} is {JsonSerializer.Serialize(msg)}");
-                //     }
-                // }
             }
         }
     }
 
+    public void TryStart()
+    {
+        if (IsFilled())
+        {
+            new Thread(() => RunTest()).Start();
+            // RunTest();
+            factory.ClearTestEpic();
+        }
+    }
+
+    public void RegisterBot(Bot bot)
+    {
+        lock (_bots)
+        {
+            bot.SetEpic(this);
+            _bots.Add(bot);
+        }
+    }
+
+    public bool IsFilled()
+    {
+        return _bots.Count >= requestedPlayers;
+    }
 }

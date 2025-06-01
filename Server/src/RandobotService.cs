@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 
 public class RandobotService {
-    public static void CreateRandobot()
+    public static Process? CreateRandobot()
     {
         Console.WriteLine("create randobot");
         var psi = new ProcessStartInfo
@@ -14,6 +14,6 @@ public class RandobotService {
             UseShellExecute = true, //TODO set to false. true is helpful for testing
         };
 
-        using var process = Process.Start(psi);
+        return Process.Start(psi);
     }
 }

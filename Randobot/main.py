@@ -108,7 +108,10 @@ def send_message(msg: dict):
 def register() -> None:
     name = f'Randobot {"".join([str(random.randint(0, 9)) for _ in range(5)] )}'
     print(name)
-    req = requests.post(f'http://localhost:5000/register?name={name}')
+    req = requests.post(f'http://127.0.0.1:5000/register', json={
+        'name': name,
+        'test_game_size': 2
+    })
 
     data = json.loads(req.text)
     print(data)

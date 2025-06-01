@@ -10,7 +10,8 @@ class Program {
         //
         // Console.WriteLine(deck);
         // HttpServer.Run(Register); //blocking call
-        Epic epic = new Epic();//blocking
+        EpicFactory epicFactory = new EpicFactory();
+        new Thread(() => HttpServer.Run(epicFactory)).Start();
     }
 }
 

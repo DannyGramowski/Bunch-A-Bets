@@ -134,6 +134,8 @@ public class Game {
 
         int[] roundCards = [0, 3, 1, 1];
 
+        _centerCards.Clear();
+
         bool result;
         for (int r = 0; r < 4; r++) {
             for (int i = 0; i < roundCards[r]; i++) {
@@ -145,6 +147,9 @@ public class Game {
             }
         }
 
+        for (int i = _centerCards.Count; i < 5; i++) {
+            _centerCards.Add(_deck.DrawCard());
+        }
 
         HandleShowdown(_bots, _centerCards, _totalPot);
         _totalPot = 0;
@@ -246,6 +251,10 @@ public class Game {
                 b.GameData.RoundState = BotRoundState.Called;
             }
         }
+        foreach (Bot b in botsCopy) {
+            Console.WriteLine(b.ToString());
+        }
+        Console.WriteLine(centerCards.Count);
 
         int count = 5;// prevent infinite loops
         //I understand this is complicated. Unfortunatley due to edges cases like ties and bots can only win what they bet it is like this.
