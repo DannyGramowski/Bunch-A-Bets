@@ -36,6 +36,7 @@ public class HttpServer {
         app.MapPost("/register", async (HttpRequest req) =>
         {
             bool isRandobot = req.HttpContext.Connection.RemoteIpAddress?.ToString() == "127.0.0.1"; // Please do not attempt to forge this, it's important to prevent recursive logic in game testing
+            Console.WriteLine($"New Bot requested to register from {req.HttpContext.Connection.RemoteIpAddress?.ToString()}");
             string? bodyStr = await (new StreamReader(req.Body).ReadToEndAsync());
             Console.WriteLine(bodyStr);
             if (bodyStr == null)
