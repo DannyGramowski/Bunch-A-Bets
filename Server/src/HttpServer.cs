@@ -25,7 +25,7 @@ public class HttpServer {
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
-            Args = new[] { $"ASPNETCORE_URLS={ServerUtils.IP}:5000" },
+            Args = new[] { $"ASPNETCORE_URLS=0.0.0.0:5000" },
             ApplicationName = "HttpRegisterServer",
             ContentRootPath = Directory.GetCurrentDirectory(),
             WebRootPath = "wwwroot",
@@ -70,6 +70,11 @@ public class HttpServer {
             GLOBAL_ID++;
 
             return Results.Json(data);
+        });
+
+        app.MapPost("/", (HttpRequest req) =>
+        {
+            return Results.Text("Hello World!");
         });
 
         app.Run();
