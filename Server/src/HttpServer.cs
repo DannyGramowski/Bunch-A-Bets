@@ -30,6 +30,7 @@ public class HttpServer {
             ContentRootPath = Directory.GetCurrentDirectory(),
             WebRootPath = "wwwroot",
         });
+        builder.WebHost.UseUrls("http://0.0.0.0:5000");
         var app = builder.Build();
 
         app.MapPost("/register", async (HttpRequest req) =>
