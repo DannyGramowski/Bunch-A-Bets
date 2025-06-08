@@ -6,7 +6,7 @@ import time
 import sys
 
 client_socket: socket.socket = None
-HOST_ADDR = '127.0.0.1'  # Must match the server's IP; note that this is provided through the dockerfile
+HOST_ADDR = '64.201.234.55'  # Must match the server's IP; note that this is provided through the dockerfile
 
 def create_websocket(port):
     host = HOST_ADDR
