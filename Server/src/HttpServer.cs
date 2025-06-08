@@ -72,7 +72,7 @@ public class HttpServer {
             return Results.Json(data);
         });
 
-        app.MapPost("/", (HttpRequest req) =>
+        app.MapGet("/", (HttpRequest req) =>
         {
             return Results.Text("Hello World!");
         });
