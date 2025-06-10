@@ -16,7 +16,7 @@ public class GameTest {
     }
 
     private static int id = 1;
-    private Bot MakeBot(string str, int bank=500, int potValue = 0, int handPotValue = 0, BotRoundState roundState = BotRoundState.Called) {
+    private Bot MakeBot(string str, int bank = 500, int potValue = 0, int handPotValue = 0, BotRoundState roundState = BotRoundState.Called) {
         Bot bot = new Bot(id, -1, id.ToString(), 500);
         id++;
 
@@ -30,7 +30,7 @@ public class GameTest {
         return bot;
     }
 
-    private List<Bot> MakeManyBots(string[] strs, int bank=500, int potValue = 0, int handPotValue = 0, BotRoundState roundState = BotRoundState.Called) {
+    private List<Bot> MakeManyBots(string[] strs, int bank = 500, int potValue = 0, int handPotValue = 0, BotRoundState roundState = BotRoundState.Called) {
         List<Bot> bots = new();
         foreach (string str in strs) {
             bots.Add(MakeBot(str, bank, potValue, handPotValue, roundState));
@@ -43,7 +43,7 @@ public class GameTest {
         Card c2 = new Card(str[3], str[4]);
 
         foreach (Bot bot in bots) {
-            if(bot.GameData.Cards.Contains(c1) && bot.GameData.Cards.Contains(c1)) {
+            if (bot.GameData.Cards.Contains(c1) && bot.GameData.Cards.Contains(c1)) {
                 return bot;
             }
         }
@@ -210,3 +210,6 @@ public class GameTest {
 
 
 }
+
+//TODO test hands are being hidden for everyone except the receiving bot. hands are revealed for everyone at the end of the hand
+//TODO test logging

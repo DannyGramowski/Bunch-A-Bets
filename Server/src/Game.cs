@@ -14,6 +14,7 @@ public enum ErrorType {
     NotExpected,
     BadActionType,
     BadValue,
+    InvalidRaiseAmount,
 }
 
 public static class ErrorTypeExtensions {
@@ -23,6 +24,8 @@ public static class ErrorTypeExtensions {
         { ErrorType.NotExpected, "not_expected" },
         { ErrorType.BadActionType, "bad_action_type" },
         { ErrorType.BadValue, "bad_value" },
+        { ErrorType.InvalidRaiseAmount, "invalid_raise_amount" },
+        
     };
 
     private static readonly Dictionary<string, ErrorType> StringToError = ErrorToString
@@ -350,7 +353,7 @@ public class Game {
             {
                 if (raiseAmount < _highestBidValue)
                 {
-                    SendErrorMessage(bot, ErrorType.InvalidInput);
+                    SendErrorMessage(bot, ErrorType.InvalidRaiseAmount);
                     return false;
                 }
                 data.RoundState = BotRoundState.Raised;
@@ -406,7 +409,7 @@ public class Game {
         Json response = new Json() {
             {"command", Command.ReceiveChat.ToCommandString()},
             {"message", message},
-            {"author_name", bot.Name},
+            {"author_name", bot.ToDictionary()},
         };
         foreach (IBot b in _bots) {
             b.SendMessage(response);
@@ -430,9 +433,9 @@ public class Game {
     private void SendLogs(IBot bot) {
         Json response = new Json() {
             {"command", Command.LogData.ToCommandString()},
-            {"logs", JsonSerializer.Serialize(_logs)},
-            {"author_name", bot.Name},
+            {"logs", JsonSerializer.Serialize(_logs)}
         };
+
         bot.SendMessage(response);
 
         WriteLog(bot, true, response);

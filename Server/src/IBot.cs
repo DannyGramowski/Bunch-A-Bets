@@ -17,13 +17,15 @@ public interface IBot {
     void TryStartEpic();
     void Close();
 
-    private Dictionary<string, object> ToDictionary() {
+    public Dictionary<string, object> ToDictionary() {
         return new Dictionary<string, object>() {
             {"id", ID},
             {"name", Name},
             {"bank", Bank},
-            {"state", GameData.RoundState},
-            {"pot_value", GameData.PotValue}
+            {"state", BotRoundStateExtensions.ToRoundStateString(GameData.RoundState)},
+            {"pot_value", GameData.PotValue},
+            {"hand", GameData.Cards}, //TODO hide cards of not the current player. Probably make SerializeBotsList non static. Also need to show hand at end of round.
+            {"total_bet", GameData.PotValueOfHand}
         };
     }
 
