@@ -73,19 +73,20 @@ Players, not individual bots, receive prizes based on their final placement. If 
 
 ### Development Restrictions
 
-Any language is permitted, as long as you are able to perform the HTTP request and TCP connection
-No use of any external API calls or network requests
+- Any language is permitted, as long as you are able to perform the HTTP request and TCP connection
+- No use of any external API calls or network requests
 Memory limit: 100MB
-This is achieved with Docker’s flag [`--memory=100m`](https://docs.docker.com/engine/containers/resource_constraints/#limit-a-containers-access-to-memory).
-CPU limit: 1 core
-This is achieved with Docker’s flag [`--cpus=1`](https://docs.docker.com/engine/containers/resource_constraints/#configure-the-default-cfs-scheduler). Note that multithreading will not provide any performance gains.
-File size limit: 10MB total
-You are allowed to look at generic strategy videos for poker, but **not videos for poker bots**.
+  - This is achieved with Docker’s flag [`--memory=100m`](https://docs.docker.com/engine/containers/resource_constraints/#limit-a-containers-access-to-memory).
+- CPU limit: 1 core
+  - This is achieved with Docker’s flag [`--cpus=1`](https://docs.docker.com/engine/containers/resource_constraints/#configure-the-default-cfs-scheduler). Note that multithreading will not provide any performance gains.
+- [Action Request](#request_action) Time Limit: 3 seconds
+- File size limit: 10MB total
+- You are allowed to look at generic strategy videos for poker, but **not videos for poker bots**.
 - If you are interested in writing an AI to make decisions, some special rules apply:
   - You must write and train the AI model yourself. You are allowed to use existing libraries for creating machine learning models like PyTorch or Tensorflow, but your work must be your own (you’re not allowed to take inspiration from existing ML poker bots).
-You may use an existing dataset to train the ML model.
-You may exceed the 10MB file size limit for a single folder within your application which contains the weights for your ML model.
-You are still limited to the CPU, memory, and time limits for your application.
+  - You may use an existing dataset to train the ML model.
+  - You may exceed the 10MB file size limit for a single folder within your application which contains the weights for your ML model.
+  - You are still limited to the CPU, memory, and time limits for your application.
 
 > Additional Note: If you find any of the rules in this document to be inaccurate or nonspecific, please let us know.
 
@@ -117,8 +118,8 @@ Each hand, two bots pay blinds that rotate clockwise. Due to the 6-hand game len
 Every round you have 3 options available to you:
 
 1. Call: You bet up to the current highest bet. If you have already bet equal to the highest bet nothing happens and you stay in the hand. If you have already bid 50 chips and the highest bid for the round is 100 chips, you must add 50 chips to the central pot
-Raise: You bet higher than the current highest bet. Everyone else that has already either called or raised and is not all in, is now back in the bidding order and must perform an action in response to your raise. There is a cap of 5 raise cycles per betting round to prevent infinite loop situations.
-Fold: Throw your hand into the center. You are no longer part of the hand and you forfeit any chips you have bet on this hand.
+2. Raise: You bet higher than the current highest bet. Everyone else that has already either called or raised and is not all in, is now back in the bidding order and must perform an action in response to your raise. There is a cap of 5 raise cycles per betting round to prevent infinite loop situations.
+3. Fold: Throw your hand into the center. You are no longer part of the hand and you forfeit any chips you have bet on this hand.
 
 ### All In
 
@@ -128,16 +129,16 @@ If you call (or raise), and the current highest bid is larger than you can affor
 
 The winner of the hand is determined based on the hand strengths below from all non-folded players. If bots have the same type of hand, ties are broken by the high card. For straights and flushes this means the highest value card. For a One or Two pair it will be the highest unshared card. If the best 5 cards are identical, the pot is split between the 2 players.
 
-Royal Flush
-Straight Flush
-Four of a Kind
-Full House
-Flush
-Straight
-Three of a Kind
-Two Pair
-One Pair
-High Card
+1. Royal Flush
+2. Straight Flush
+3. Four of a Kind
+4. Full House
+5. Flush
+6. Straight
+7. Three of a Kind
+8. Two Pair
+9. One Pair
+10. High Card
 
 ### Rule Changes
 
@@ -196,27 +197,26 @@ Here are some tips to help you develop your poker bot. You are heavily encourage
 
 This is a list of the required functions for your bot to participate in the tournament. You must be able to receive the request_action input from the server through the socket then send the correctly formatted take_action response back.
 
-[/register API call](#bot-registration)
-
-[Connect to the server on the given port via TCP](#connecting-to-the-server)
+- [/register API call](#bot-registration)
+- [Connect to the server on the given port via TCP](#connecting-to-the-server)
 
 #### Server -> Bot:
-[request_action](#request_action)
+- [request_action](#request_action)
 
-Bot -> Server:
-[take_action](#take_action)
+#### Bot -> Server:
+- [take_action](#take_action)
 
 These are other messages that provide additional information and functionality. Your bot will still be able to participate without these, but they can provide a competitive edge, or some laughs.
 
-Server -> Bot:
-[confirm_action](#confirm_action)
-[log_data](#log_data)
-[chat_message](#chat_message)
-[request_action](#request_action)
+#### Server -> Bot:
+- [confirm_action](#confirm_action)
+- [hand_result](#hand_result)
+- [receive_chat](#receive_chat)
+- [log_data](#log_data)
 
-Bot -> Server:
-[get_logs](#get_logs)
-[send_chat](#send_chat)
+#### Bot -> Server:
+- [send_chat](#send_chat)
+- [get_logs](#get_logs)
 
 ### The Randobot
 
