@@ -8,6 +8,13 @@ public class BotGameData {
 
     public BotGameData() { }
 
+    public BotGameData(List<Card> cards, BotRoundState roundState, int potValue, int potValueOfHand) {
+        Cards = cards;
+        RoundState = roundState;
+        PotValue = potValue;
+        PotValueOfHand = potValueOfHand;
+    }
+
     public void NewHand(List<Card> cards)
     {
         if (cards.Count != 2) Console.Error.WriteLine("Invalid number of cards");

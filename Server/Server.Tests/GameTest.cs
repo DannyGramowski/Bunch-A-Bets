@@ -16,7 +16,7 @@ public class GameTest {
     }
 
     private static int id = 1;
-    private Bot MakeBot(string str, int bank=500, int potValue = 0, int handPotValue = 0, BotRoundState roundState = BotRoundState.Called) {
+    private Bot MakeBot(string str, int bank = 500, int potValue = 0, int handPotValue = 0, BotRoundState roundState = BotRoundState.Called) {
         Bot bot = new Bot(id, -1, id.ToString(), 500);
         id++;
 
@@ -30,7 +30,7 @@ public class GameTest {
         return bot;
     }
 
-    private List<Bot> MakeManyBots(string[] strs, int bank=500, int potValue = 0, int handPotValue = 0, BotRoundState roundState = BotRoundState.Called) {
+    private List<Bot> MakeManyBots(string[] strs, int bank = 500, int potValue = 0, int handPotValue = 0, BotRoundState roundState = BotRoundState.Called) {
         List<Bot> bots = new();
         foreach (string str in strs) {
             bots.Add(MakeBot(str, bank, potValue, handPotValue, roundState));
@@ -43,7 +43,7 @@ public class GameTest {
         Card c2 = new Card(str[3], str[4]);
 
         foreach (Bot bot in bots) {
-            if(bot.GameData.Cards.Contains(c1) && bot.GameData.Cards.Contains(c1)) {
+            if (bot.GameData.Cards.Contains(c1) && bot.GameData.Cards.Contains(c1)) {
                 return bot;
             }
         }
@@ -90,7 +90,7 @@ public class GameTest {
                 bot.GameData.RoundState = BotRoundState.Folded;
                 bot.GameData.RoundState = BotRoundState.Folded;
             }
-            Game.HandleShowdown(allFolded, communityCards, 3000);
+            Game.HandleShowdown(allFolded.Cast<IBot>().ToList(), communityCards, 3000);
             winningBot = GetBotByStringCards(allFolded, "AH AC");
             foreach (Bot bot in allFolded) {
                 if (bot.Equals(winningBot)) {
@@ -107,7 +107,7 @@ public class GameTest {
                 mostFolded[i].GameData.RoundState = BotRoundState.Folded;
             }
 
-            Game.HandleShowdown(mostFolded, communityCards, 3000);
+            Game.HandleShowdown(mostFolded.Cast<IBot>().ToList(), communityCards, 3000);
             winningBot = GetBotByStringCards(mostFolded, "2C 3H");
             foreach (Bot bot in mostFolded) {
                 if (bot.Equals(winningBot)) {
@@ -120,7 +120,7 @@ public class GameTest {
 
         {
             List<Bot> tie = MakeManyBots(["2C 3H", "2H 3C", "5S 4C", "AH KC", "AC KH", "7C 5C"], handPotValue: 500);
-            Game.HandleShowdown(tie, communityCards, 3000);
+            Game.HandleShowdown(tie.Cast<IBot>().ToList(), communityCards, 3000);
             Bot winningBot1 = GetBotByStringCards(tie, "AH KC");
             Bot winningBot2 = GetBotByStringCards(tie, "AC KH");
 
@@ -141,7 +141,7 @@ public class GameTest {
             Bot allInBot2 = GetBotByStringCards(twoAllIn, "AC KH");
             allInBot2.GameData.RoundState = BotRoundState.AllIn;
             allInBot2.GameData.PotValueOfHand = 250;
-            Game.HandleShowdown(twoAllIn, communityCards, 3000);
+            Game.HandleShowdown(twoAllIn.Cast<IBot>().ToList(), communityCards, 3000);
 
             foreach (Bot bot in twoAllIn) {
                 if (bot.Equals(allInBot1)) {
@@ -162,7 +162,7 @@ public class GameTest {
             Bot second = GetBotByStringCards(overflow, "7C 5C");
             second.GameData.PotValueOfHand = 600;
 
-            Game.HandleShowdown(overflow, communityCards, 3000);
+            Game.HandleShowdown(overflow.Cast<IBot>().ToList(), communityCards, 3000);
 
             foreach (Bot bot in overflow) {
                 if (bot.Equals(winning)) {
@@ -191,7 +191,7 @@ public class GameTest {
             second.GameData.PotValueOfHand = secondVal;
 
 
-            Game.HandleShowdown(overflow, communityCards, 3000);
+            Game.HandleShowdown(overflow.Cast<IBot>().ToList(), communityCards, 3000);
 
             foreach (Bot bot in overflow) {
                 if (bot.Equals(winning)) {
@@ -210,3 +210,6 @@ public class GameTest {
 
 
 }
+
+//TODO test hands are being hidden for everyone except the receiving bot. hands are revealed for everyone at the end of the hand
+//TODO test logging

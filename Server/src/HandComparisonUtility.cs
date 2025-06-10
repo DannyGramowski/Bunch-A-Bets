@@ -26,7 +26,7 @@ public enum HandWinner {
 public static class HandComparisonUtility {
     public const int HAND_SIZE = 5;
 
-    public static HandWinner CompareBotHands(Bot b1, Bot b2, List<Card> centerCards) {
+    public static HandWinner CompareBotHands(IBot b1, IBot b2, List<Card> centerCards) {
 
         return CompareHands(GetBestHand(b1.GameData.Cards, centerCards), GetBestHand(b2.GameData.Cards, centerCards));
     }

@@ -14,6 +14,7 @@ public enum ErrorType {
     NotExpected,
     BadActionType,
     BadValue,
+    InvalidRaiseAmount,
 }
 
 public static class ErrorTypeExtensions {
@@ -23,6 +24,8 @@ public static class ErrorTypeExtensions {
         { ErrorType.NotExpected, "not_expected" },
         { ErrorType.BadActionType, "bad_action_type" },
         { ErrorType.BadValue, "bad_value" },
+        { ErrorType.InvalidRaiseAmount, "invalid_raise_amount" },
+        
     };
 
     private static readonly Dictionary<string, ErrorType> StringToError = ErrorToString
@@ -76,7 +79,7 @@ public class Game {
     private const int SMALL_BLIND = 50;
 
 
-    private List<Bot> _bots;
+    private List<IBot> _bots;
     private Deck _deck;
     private List<Card> _centerCards = new List<Card>();
     private int _gameId;
@@ -94,7 +97,7 @@ public class Game {
     /**
      * bots: need to add in random order
      */
-    public Game(List<Bot> bots, bool isTournament) {
+    public Game(List<IBot> bots, bool isTournament) {
         if (bots.Count < 2 || bots.Count > 6) {
             Console.Error.WriteLine("Invalid number of bots. must be between 2 and 6.");
         }
@@ -113,7 +116,7 @@ public class Game {
             PlayHand();
 
             //move order of players
-            Bot firstPlayer = _bots[0];
+            IBot firstPlayer = _bots[0];
             _bots.RemoveAt(0);
             _bots.Add(firstPlayer);
             _handNumber++;
@@ -123,12 +126,12 @@ public class Game {
 
     internal void PlayHand() {
         _deck = new Deck();
-        foreach (Bot bot in _bots) {
+        foreach (IBot bot in _bots) {
             bot.GameData.NewHand(new List<Card>() { _deck.DrawCard(), _deck.DrawCard() });
         }
 
         //clear bot pots and reset round states for those still playing. Clears from any previous hands. This is probably redundant
-        foreach (Bot bot in _bots) {
+        foreach (IBot bot in _bots) {
             bot.GameData.NewRound();
         }
 
@@ -165,7 +168,7 @@ public class Game {
         Console.WriteLine("Beginning Round");
         
         //clear bot pots and reset round states for those still playing
-        foreach (Bot bot in _bots)
+        foreach (IBot bot in _bots)
         {
             bot.GameData.NewRound();
         }
@@ -178,7 +181,7 @@ public class Game {
         while (continueRound) {
             Console.WriteLine($"numberRoundTime{_numberTimesRaiseThisRound}");
             continueRound = false;
-            foreach (Bot bot in _bots) {
+            foreach (IBot bot in _bots) {
                 //If the bot has played previous but someone after raised, they get another chance to call, raise or fold
                 // TODO also, if all other bots have folded or all in, the round (and the entire hand) should be finished immediately - do this by returning True to PlayRound()
                 if (EveryoneAllIn()) {
@@ -236,14 +239,14 @@ public class Game {
     internal bool EveryoneAllIn()
     {
         int notAllInCount = 0;
-        foreach (Bot bot in _bots)
+        foreach (IBot bot in _bots)
         {
             if (bot.GameData.RoundState != BotRoundState.Folded && bot.GameData.RoundState != BotRoundState.AllIn) { notAllInCount ++; }
         }
         return notAllInCount <= 1;
     }
 
-    internal static void HandleShowdown(List<Bot> bots, List<Card> centerCards, int totalPot) {
+    internal static void HandleShowdown(List<IBot> bots, List<Card> centerCards, int totalPot) {
         Console.WriteLine("SHOWDOWN TIME BABY");
 
         var botsCopy = bots.ToList();
@@ -251,11 +254,11 @@ public class Game {
         var ct = botsCopy.Count(b => b.GameData.RoundState != BotRoundState.Folded && b.GameData.RoundState != BotRoundState.NotPlayed);
         //protect against everyone being folded if that ever happens
         if (ct == 0) {
-            foreach (Bot b in botsCopy) {
+            foreach (IBot b in botsCopy) {
                 b.GameData.RoundState = BotRoundState.Called;
             }
         }
-        foreach (Bot b in botsCopy) {
+        foreach (IBot b in botsCopy) {
             Console.WriteLine(b.ToString());
         }
         Console.WriteLine(centerCards.Count);
@@ -264,13 +267,13 @@ public class Game {
         //I understand this is complicated. Unfortunatley due to edges cases like ties and bots can only win what they bet it is like this.
         while (totalPot > 0 && count > 0) {
             //This will contain at least 2 bots if there is a tie.
-            List<Bot> highestHands = new();
+            List<IBot> highestHands = new();
             //This contains the bet value initially.
             //This acts as the available pot to take from of the losing bots for the winners. In the case of an overflow from the winners, each bots value will contain the value left to disperse.
             var botBets = botsCopy.ToDictionary(bot => bot.ID, bot => bot.GameData.PotValueOfHand);
 
             //finds the best hands from all bots that made it to the end
-            foreach (Bot b in botsCopy) {
+            foreach (IBot b in botsCopy) {
                 if (b.GameData.RoundState == BotRoundState.Folded) continue;
                 if (highestHands.Count == 0) {
                     highestHands.Add(b);
@@ -288,8 +291,8 @@ public class Game {
 
             // //This will lose some money do to int division if pot % count != 0. This will only be 1 or 2 cents so its not a big deal
             // var amountPerBot = totalPot / highestHands.Count;
-            foreach (Bot winningBot in highestHands) {
-                foreach (Bot bot in botsCopy) {
+            foreach (IBot winningBot in highestHands) {
+                foreach (IBot bot in botsCopy) {
                     if (highestHands.Contains(bot)) {
                         //this will get called multiple times if there is a tie but PotValueOf Hand will be 0 after the first time so it wont do anything
                         if (bot.GameData.PotValueOfHand == 0) continue;
@@ -321,9 +324,9 @@ public class Game {
      * if a valid TakeAction message from the current bot was received during this cycle, returns trues,
      * otherwise returns false.
      */
-    private bool GetAnyMessages(Bot? activeBot) {
+    private bool GetAnyMessages(IBot? activeBot) {
         bool isResolved = false;
-        foreach (Bot b in _bots) {
+        foreach (IBot b in _bots) {
             if (b.HasMessageReceived()) {
                 Json message = b.ReceiveMessage();
                 isResolved |= HandleResponse(message, b, b == activeBot);
@@ -332,7 +335,7 @@ public class Game {
         return isResolved;
     }
 
-    internal bool TakeAction(ActionType actionType, int raiseAmount, Bot bot) {
+    internal bool TakeAction(ActionType actionType, int raiseAmount, IBot bot) {
         BotGameData data = bot.GameData;
 
         if (actionType == ActionType.Fold)
@@ -350,7 +353,7 @@ public class Game {
             {
                 if (raiseAmount < _highestBidValue)
                 {
-                    SendErrorMessage(bot, ErrorType.InvalidInput);
+                    SendErrorMessage(bot, ErrorType.InvalidRaiseAmount);
                     return false;
                 }
                 data.RoundState = BotRoundState.Raised;
@@ -387,7 +390,7 @@ public class Game {
         return true;
     }
 
-    internal void BotBet(Bot bot, int amount)
+    internal void BotBet(IBot bot, int amount)
     {
         int actualBetAmount = bot.Bet(amount - bot.GameData.PotValue);
         _totalPot += actualBetAmount;
@@ -397,42 +400,42 @@ public class Game {
         }
     }
 
-    private void SendChat(string message, Bot bot)
+    private void SendChat(string message, IBot bot)
     {
-        if (bot.lastChatTime > DateTime.Now - TimeSpan.FromMilliseconds(CHAT_TIMEOUT_MS))
+        if (bot.LastChatTime > DateTime.Now - TimeSpan.FromMilliseconds(CHAT_TIMEOUT_MS))
         {
             return;
         }
         Json response = new Json() {
             {"command", Command.ReceiveChat.ToCommandString()},
             {"message", message},
-            {"author_name", bot.Name},
+            {"author_name", bot.ToDictionary()},
         };
-        foreach (Bot b in _bots) {
+        foreach (IBot b in _bots) {
             b.SendMessage(response);
         }
 
         WriteLog(bot, false, response);
-        bot.lastChatTime = DateTime.Now;
+        bot.LastChatTime = DateTime.Now;
     }
 
-    private void WriteLog(Bot bot, bool outgoing, string str)
+    private void WriteLog(IBot bot, bool outgoing, string str)
     {
         string outgoingString = outgoing ? "received" : "sent";
         _logs.Add($"{bot.Name} {outgoingString}: {str}");
         Console.WriteLine($"{bot.Name} {outgoingString}: {str}");
     }
 
-    private void WriteLog(Bot bot, bool outgoing, Json data) {
+    private void WriteLog(IBot bot, bool outgoing, Json data) {
         WriteLog(bot, outgoing, JsonSerializer.Serialize(data));
     }
 
-    private void SendLogs(Bot bot) {
+    private void SendLogs(IBot bot) {
         Json response = new Json() {
             {"command", Command.LogData.ToCommandString()},
-            {"logs", JsonSerializer.Serialize(_logs)},
-            {"author_name", bot.Name},
+            {"logs", JsonSerializer.Serialize(_logs)}
         };
+
         bot.SendMessage(response);
 
         WriteLog(bot, true, response);
@@ -441,7 +444,7 @@ public class Game {
     /* Handles a single bot message mid-game. Returns true if the message reflects a valid TakeAction message,
      * and the action was performed successfully.
      */
-    private bool HandleResponse(Json response, Bot bot, bool actionAllowed)
+    private bool HandleResponse(Json response, IBot bot, bool actionAllowed)
     {
         try
         {
@@ -482,7 +485,7 @@ public class Game {
         return false;
     }
 
-    private bool HandleTakeAction(Json response, Bot bot) {
+    private bool HandleTakeAction(Json response, IBot bot) {
         if (!response.ContainsKey("action_type")) {
             SendErrorMessage(bot, ErrorType.InvalidInput);
             return false;
@@ -520,7 +523,7 @@ public class Game {
         return TakeAction(actionType, raiseAmount, bot);
     }
 
-    private void SendErrorMessage(Bot bot, ErrorType error) {
+    private void SendErrorMessage(IBot bot, ErrorType error) {
         Json data = GetErrorMessageData(error);
         WriteLog(bot, true, data);
         bot.SendMessage(data);   
@@ -535,7 +538,7 @@ public class Game {
         };
     }
 
-    private Json GetBotRequestActionData(Bot bot) {
+    private Json GetBotRequestActionData(IBot bot) {
         return new Json() {
             {"command", Command.RequestAction.ToCommandString()},
             {"hand", Card.SerializeCardList(bot.GameData.Cards)},
@@ -543,7 +546,7 @@ public class Game {
             {"game_number", _gameId},
             {"hand_number", _handNumber},
             {"round_number", _roundStage},
-            {"players", Bot.SerializeBotsList(_bots) },
+            {"players", IBot.SerializeBotsList(_bots) },
             {"highest_bid_value", _highestBidValue},
             {"total_pot_value", _totalPot}
         };

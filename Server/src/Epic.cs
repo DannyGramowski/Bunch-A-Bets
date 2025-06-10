@@ -6,7 +6,7 @@ using System.Text.Json;
 public class Epic
 {
     public const int STARTING_BANK = 5000;
-    private List<Bot> _bots = new List<Bot>();
+    private List<IBot> _bots = new List<IBot>();
     public int requestedPlayers;
     private List<Process?> botProcesses;
     private EpicFactory factory;
@@ -32,12 +32,11 @@ public class Epic
             game.PlayGame(24);
         }   
         Console.WriteLine("Finished Test Game");
-        foreach (Bot b in _bots)
+        foreach (IBot b in _bots)
         {
-            b.CloseSocket();
+            b.Close();
         }
-        foreach (Process? p in botProcesses)
-        {
+        foreach (Process? p in botProcesses) {
             p?.Kill();
         }
     }
