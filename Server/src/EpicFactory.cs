@@ -6,8 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Server;
 
 
-public class EpicFactory
-{
+public class EpicFactory {
     private Epic? testEpic; // Only one can be set here at a time - if it's here, it's waiting for its randobots to connect
     private Epic? tournamentEpic;
     private List<Process?> processes = new List<Process?>();

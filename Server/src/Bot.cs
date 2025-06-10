@@ -2,30 +2,34 @@
 
 namespace Server;
 
-public class Bot
-{
+public class Bot : IBot {
     public int ID => _id;
     public string Name => _name;
     public BotGameData GameData => _gameData;
-
-    public int Bank;
+    public int Bank { get { return _bank; } set { _bank = value; } }
+    public DateTime LastChatTime{get {return _lastChatTime;} set{ _lastChatTime = value; }}
 
     private BotSocket _socket;
 
     private int _id; //sequential value set based on number of players registered. Starts at 1.
     private string _name;
+    private int _bank;
     private BotGameData _gameData;
-    public DateTime lastChatTime;
+    private DateTime _lastChatTime;
     private Epic epic;
 
-    public Bot(int id, int port, string name, int startingBank)
-    {
+    public Bot(int id, int port, string name, int startingBank) {
         _socket = new BotSocket(port, this);
         _id = id;
         _name = name;
         _gameData = new BotGameData();
         Bank = startingBank;
         Console.WriteLine($"Bot ID: {_id}, Bot Port: {port}, Bot Name: {_name}");
+    }
+
+    // I guess this is a c# thing yipee
+    ~Bot() {
+        _socket?.CloseSocket();
     }
 
     /// <summary>
@@ -35,10 +39,8 @@ public class Bot
     /// <returns>
     ///     The amount that was bet. If this is less than inputted, they went all in. To get the amount they went all in, check GameData.PotValue
     /// </returns>
-    public int Bet(int amount)
-    {
-        if (amount > Bank)
-        {
+    public int Bet(int amount) {
+        if (amount > Bank) {
             amount = Bank;
             Bank = 0;
             _gameData.PotValue += amount;
@@ -55,32 +57,18 @@ public class Bot
         return amount;
     }
 
-    public void SendMessage(Dictionary<string, object> message)
-    {
+    public void SendMessage(Dictionary<string, object> message) {
         _socket.SendMessage(message);
     }
 
-    public Dictionary<string, object> ReceiveMessage()
-    {
+    public Dictionary<string, object> ReceiveMessage() {
         return _socket.ReadMessage();
-    }
-
-    public List<Dictionary<string, object>> ReceiveMessageBlocking()
-    {
-        List<Dictionary<string, object>> message = new List<Dictionary<string, object>>();
-        while (message.Count == 0)
-        {
-            Thread.Sleep(10);
-            message = _socket.ReceiveMessage();
-        }
-        return message;
     }
 
     public bool HasMessageReceived() => _socket.HasMessageReceived();
 
 
-    public Dictionary<string, object> ToDictionary()
-    {
+    private Dictionary<string, object> ToDictionary() {
         return new Dictionary<string, object>() {
             {"id", ID},
             {"name", _name},
@@ -90,50 +78,28 @@ public class Bot
         };
     }
 
-    public override string ToString()
-    {
+    public override string ToString() {
         return $"ID: {ID}, Name: {_name}, Bank: {Bank}, Cards: {string.Join(",", GameData.Cards)}";
     }
 
-    public override int GetHashCode()
-    {
+    public override int GetHashCode() {
         return ID;
     }
 
-    public override bool Equals(object? obj)
-    {
-        if (obj is Bot other)
-        {
+    public override bool Equals(object? obj) {
+        if (obj is Bot other) {
             return other.ID == ID;
         }
         return false;
     }
 
-    public static object SerializeBotsList(List<Bot> bots)
-    {
-        return bots.Select(bot => bot.ToDictionary()).ToArray();
-    }
-
-    public bool IsReady()
-    {
-        return _socket.Ready;
-    }
-
-    public void SetEpic(Epic epic)
-    {
+    public void SetEpic(Epic epic) {
         this.epic = epic;
     }
 
-    public void TryStartEpic()
-    {
-        if (epic != null)
-        {
+    public void TryStartEpic() {
+        if (epic != null) {
             epic.TryStart();
         }
-    }
-
-    public void CloseSocket()
-    {
-        _socket.CloseSocket();
     }
 }
