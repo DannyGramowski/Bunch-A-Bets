@@ -16,7 +16,7 @@ public class Bot : IBot {
     private int _bank;
     private BotGameData _gameData;
     private DateTime _lastChatTime;
-    private Epic epic;
+    private Epic? epic;
 
     public Bot(int id, int port, string name, int startingBank) {
         _socket = new BotSocket(port, this);
@@ -27,10 +27,6 @@ public class Bot : IBot {
         Console.WriteLine($"Bot ID: {_id}, Bot Port: {port}, Bot Name: {_name}");
     }
 
-    // I guess this is a c# thing yipee
-    ~Bot() {
-        _socket?.CloseSocket();
-    }
 
     /// <summary>
     /// Subtracts the amount if able to. Otherwise marks the bot as all in and sets bank to 0
@@ -67,17 +63,6 @@ public class Bot : IBot {
 
     public bool HasMessageReceived() => _socket.HasMessageReceived();
 
-
-    private Dictionary<string, object> ToDictionary() {
-        return new Dictionary<string, object>() {
-            {"id", ID},
-            {"name", _name},
-            {"bank", Bank},
-            {"state", _gameData.RoundState},
-            {"pot_value", _gameData.PotValue}
-        };
-    }
-
     public override string ToString() {
         return $"ID: {ID}, Name: {_name}, Bank: {Bank}, Cards: {string.Join(",", GameData.Cards)}";
     }
@@ -98,9 +83,7 @@ public class Bot : IBot {
     }
 
     public void TryStartEpic() {
-        if (epic != null) {
-            epic.TryStart();
-        }
+        epic?.TryStart();
     }
 
     public void Close() {
