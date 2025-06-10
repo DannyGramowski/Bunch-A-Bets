@@ -224,7 +224,7 @@ The Randobot is a dummy example bot which can be found in the `Randobot/` folder
 
 ## Testing Your Bot
 
-Before the tournament date, the gameplay server will be running 24/7 in "testing mode". You can connect to the server and play a test game against a specified number of bots. This will allow you to run a demo game against very, very bad bots just to make sure your bot runs properly and responds correctly to the message types. As specified in [Bot Registration](#bot-registration), you may pass the `test_game_size` parameter in order to change the game size. This game will run for a maximum of 24 hands (the same as High Noon).
+Before the tournament date, the gameplay server will be running 24/7 in "testing mode". You can connect to the server and play a test game against a specified number of bots. This will allow you to run a demo game against very, very bad bots just to make sure your bot runs properly and responds correctly to the message types. As specified in [Bot Registration](#bot-registration), you may pass the optional `test_game_size` parameter in order to change the game size. This game will run for a maximum of 24 hands (the same as High Noon).
 
 On the day of the competition, the /request command will change its functionality, and instead wait until the tournament begins to start sending requests to your bot.
 
