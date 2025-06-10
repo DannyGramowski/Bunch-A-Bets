@@ -15,6 +15,7 @@ public interface IBot {
     void SendMessage(Dictionary<string, object> message);
     void SetEpic(Epic epic);
     void TryStartEpic();
+    void Close();
 
     private Dictionary<string, object> ToDictionary() {
         return new Dictionary<string, object>() {

@@ -32,8 +32,11 @@ public class Epic
             game.PlayGame(24);
         }   
         Console.WriteLine("Finished Test Game");
-        foreach (Process? p in botProcesses)
+        foreach (IBot b in _bots)
         {
+            b.Close();
+        }
+        foreach (Process? p in botProcesses) {
             p?.Kill();
         }
     }

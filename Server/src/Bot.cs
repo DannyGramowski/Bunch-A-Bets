@@ -102,4 +102,8 @@ public class Bot : IBot {
             epic.TryStart();
         }
     }
+
+    public void Close() {
+        _socket.CloseSocket();
+    }
 }
