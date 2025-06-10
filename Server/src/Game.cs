@@ -338,21 +338,14 @@ public class Game {
     internal bool TakeAction(ActionType actionType, int raiseAmount, IBot bot) {
         BotGameData data = bot.GameData;
 
-        if (actionType == ActionType.Fold)
-        {
+        if (actionType == ActionType.Fold) {
             data.RoundState = BotRoundState.Folded;
-        }
-        else
-        {
-            if (actionType == ActionType.Call || _numberTimesRaiseThisRound >= 5)
-            {
+        } else {
+            if (actionType == ActionType.Call || _numberTimesRaiseThisRound >= 5) {
                 data.RoundState = BotRoundState.Called;
                 raiseAmount = _highestBidValue;
-            }
-            else
-            {
-                if (raiseAmount < _highestBidValue)
-                {
+            } else {
+                if (raiseAmount < _highestBidValue) {
                     SendErrorMessage(bot, ErrorType.InvalidRaiseAmount);
                     return false;
                 }
@@ -360,6 +353,8 @@ public class Game {
             }
 
             BotBet(bot, raiseAmount);
+
+            SendSuccessMessage(bot);
         }
 
         //set action take
@@ -409,7 +404,7 @@ public class Game {
         Json response = new Json() {
             {"command", Command.ReceiveChat.ToCommandString()},
             {"message", message},
-            {"author_name", bot.ToDictionary()},
+            {"author", bot.ToDictionary()},
         };
         foreach (IBot b in _bots) {
             b.SendMessage(response);
@@ -450,7 +445,7 @@ public class Game {
         {
             if (!response.ContainsKey(CommandExtensions.CommandText))
             {
-                bot.SendMessage(GetErrorMessageData(ErrorType.InvalidInput));
+                SendErrorMessage(bot, ErrorType.InvalidInput);
                 return false;
             }
             Command cmd = CommandExtensions.FromCommandString(response[CommandExtensions.CommandText].ToString());
@@ -460,14 +455,14 @@ public class Game {
                 case Command.TakeAction:
                     if (!actionAllowed)
                     {
-                        bot.SendMessage(GetErrorMessageData(ErrorType.NotExpected));
+                        SendErrorMessage(bot, ErrorType.NotExpected);
                         return false;
                     }
                     return HandleTakeAction(response, bot);
                 case Command.SendChat:
                     if (!response.ContainsKey("message") || response["message"].ToString().Length == 0)
                     {
-                        bot.SendMessage(GetErrorMessageData(ErrorType.InvalidInput));
+                        SendErrorMessage(bot, ErrorType.InvalidInput);
                         return false;
                     }
                     SendChat(response["message"].ToString(), bot);
@@ -530,10 +525,19 @@ public class Game {
         
     }
 
+    private void SendSuccessMessage(IBot bot) {
+        Json data = new Json() {
+            {"command", Command.ConfirmAction.ToCommandString()},
+            {"result", "success" }
+        };
+        WriteLog(bot, true, data);
+        bot.SendMessage(data);
+    }
+
     private Json GetErrorMessageData(ErrorType error) {
         return new Json() {
             {"command", Command.ConfirmAction.ToCommandString()},
-            {"result", "success"},
+            {"result", "error"},
             {"error", error.ToErrorString()},
         };
     }

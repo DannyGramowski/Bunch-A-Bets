@@ -16,7 +16,7 @@ public class Bot : IBot {
     private int _bank;
     private BotGameData _gameData;
     private DateTime _lastChatTime;
-    private Epic? epic;
+    // private Epic? epic;
 
     public Bot(int id, int port, string name, int startingBank) {
         _socket = new BotSocket(port, this);
@@ -78,13 +78,13 @@ public class Bot : IBot {
         return false;
     }
 
-    public void SetEpic(Epic epic) {
-        this.epic = epic;
-    }
+    // public void SetEpic(Epic epic) {
+    //     this.epic = epic;
+    // }
 
-    public void TryStartEpic() {
-        epic?.TryStart();
-    }
+    // public void TryStartEpic() {
+    //     epic?.TryStart();
+    // }
 
     public void Close() {
         _socket.CloseSocket();

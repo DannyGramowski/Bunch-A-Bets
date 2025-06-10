@@ -213,3 +213,4 @@ public class GameTest {
 
 //TODO test hands are being hidden for everyone except the receiving bot. hands are revealed for everyone at the end of the hand
 //TODO test logging
+//TODO hand result

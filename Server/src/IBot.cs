@@ -13,8 +13,8 @@ public interface IBot {
     bool HasMessageReceived();
     Dictionary<string, object> ReceiveMessage();
     void SendMessage(Dictionary<string, object> message);
-    void SetEpic(Epic epic);
-    void TryStartEpic();
+    // void SetEpic(Epic epic);
+    // void TryStartEpic();
     void Close();
 
     public Dictionary<string, object> ToDictionary() {
@@ -24,7 +24,7 @@ public interface IBot {
             {"bank", Bank},
             {"state", BotRoundStateExtensions.ToRoundStateString(GameData.RoundState)},
             {"pot_value", GameData.PotValue},
-            {"hand", GameData.Cards}, //TODO hide cards of not the current player. Probably make SerializeBotsList non static. Also need to show hand at end of round.
+            {"hand", Card.SerializeCardList(GameData.Cards)}, //TODO hide cards of not the current player. Probably make SerializeBotsList non static. Also need to show hand at end of round.
             {"total_bet", GameData.PotValueOfHand}
         };
     }
