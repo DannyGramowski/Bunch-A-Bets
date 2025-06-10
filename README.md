@@ -39,7 +39,7 @@ Your bot code in any language of your choice.
 > NOTE: Please, no excess profanity here
 
 Avatar (any filename) **MANDATORY**
-This is a **MANDATORY** image file that will show up next to your cards. It will show as a square in the final game, so any avatar that is not a square will be cropped.
+This is an image file that will show up next to your cards. It will show as a square in the final game, so any avatar that is not a square will be cropped.
 
 Particle (any filename)
 When you win a hand, particles will appear to celebrate your victory. You can optionally provide a custom image to appear instead of the default particles.
