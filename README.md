@@ -24,10 +24,10 @@ This JSON file will tell us the name of your bot, as well as filenames for any a
 
 ```json
 {
-    “name”: “Billy the Kid”,
-    “avatar_filename”: “mugshot.png”,
-    “particle_filename”: “tumbleweeds.png”,
-    “sound_effect_filename”: “gunshots.mp3”
+    "name": "Billy the Kid",
+    "avatar_filename": "mugshot.png",
+    "particle_filename": "tumbleweeds.png",
+    "sound_effect_filename": "gunshots.mp3"
 }
 ```
 
@@ -152,7 +152,7 @@ Each betting round is capped at circling the table 5 times - any raises after th
 
 ### Connecting to the Server
 
-Your bots will communicate with the game server through a TCP connection. The server will send your bot “messages” (as JSON strings), and your bot may respond via JSON string messages of its own. You will connect to the following IP:
+Your bots will communicate with the game server through a TCP connection. The server will send your bot "messages" (as JSON strings), and your bot may respond via JSON string messages of its own. You will connect to the following IP:
 
 > [64.201.234.55](http://64.201.234.55:5000)
 
@@ -168,8 +168,8 @@ URL: http://64.201.234.55:5000/register
 Content-Type: application/json
 Request Body:
 {
-    “name”: NAME,
-    “test_game_size”: TEST_GAME_SIZE
+    "name": NAME,
+    "test_game_size": TEST_GAME_SIZE
 }
 ```
 
@@ -181,8 +181,8 @@ This endpoint returns a JSON response in the following format:
 
 ```json
 {
-“port_number”: PORT_NUMBER,
-“bot_id”: BOT_ID
+"port_number": PORT_NUMBER,
+"bot_id": BOT_ID
 }
 ```
 
@@ -224,7 +224,7 @@ The Randobot is a dummy example bot which can be found in the `Randobot/` folder
 
 ## Testing Your Bot
 
-Before the tournament date, the gameplay server will be running 24/7 in “testing mode”. You can connect to the server and play a test game against a specified number of bots. This will allow you to run a demo game against very, very bad bots just to make sure your bot runs properly and responds correctly to the message types. As specified in [Bot Registration](#bot-registration), you may pass the `test_game_size` parameter in order to change the game size. This game will run for a maximum of 24 hands (the same as High Noon).
+Before the tournament date, the gameplay server will be running 24/7 in "testing mode". You can connect to the server and play a test game against a specified number of bots. This will allow you to run a demo game against very, very bad bots just to make sure your bot runs properly and responds correctly to the message types. As specified in [Bot Registration](#bot-registration), you may pass the `test_game_size` parameter in order to change the game size. This game will run for a maximum of 24 hands (the same as High Noon).
 
 On the day of the competition, the /request command will change its functionality, and instead wait until the tournament begins to start sending requests to your bot.
 
@@ -234,7 +234,7 @@ If you are struggling with getting a Docker deployment working for your bot, fee
 
 ## Gameplay API
 
-The primary gameplay loop consists of your bot receiving a message through the TCP socket (called a `request_action` message) and responding with a `take_action` message. In addition, your bot will receive messages at the end of the round with the result of the round, whenever another player sends a chat, and whenever your bot sends ANY take_action message or ANY invalid message to the server. You should plan to implement a primary loop for receiving and handling messages - whether your code processes information in another thread between actions is up to you. Below is an “API” detailing the server and client (bot) message format - note that the only server message you *must* respond to is the `request_action` message.
+The primary gameplay loop consists of your bot receiving a message through the TCP socket (called a `request_action` message) and responding with a `take_action` message. In addition, your bot will receive messages at the end of the round with the result of the round, whenever another player sends a chat, and whenever your bot sends ANY take_action message or ANY invalid message to the server. You should plan to implement a primary loop for receiving and handling messages - whether your code processes information in another thread between actions is up to you. Below is an "API" detailing the server and client (bot) message format - note that the only server message you *must* respond to is the `request_action` message.
 
 ### Server Messages
 
@@ -244,26 +244,26 @@ The server will send this message to your bot when it is your turn to play. You 
 
 ```json
 {
-“command”: “request_action”,
-“hand”: [CARD, CARD],
-“community_cards”: [CARD, ...],
-“game_number”: GAME_NUMBER,
-“hand_number”: HAND_NUMBER,
-“round_number”: ROUND_NUMBER,
-“players”: [PLAYER, ...],
-“highest_bid_value”: HIGHEST_BID_VALUE,
-“total_pot_value”: TOTAL_POT_VALUE
+"command": "request_action",
+"hand": [CARD, CARD],
+"community_cards": [CARD, ...],
+"game_number": GAME_NUMBER,
+"hand_number": HAND_NUMBER,
+"round_number": ROUND_NUMBER,
+"players": [PLAYER, ...],
+"highest_bid_value": HIGHEST_BID_VALUE,
+"total_pot_value": TOTAL_POT_VALUE
 }
 ```
 
-`command` (str): The literal string “request_action”
+`command` (str): The literal string "request_action"
 
 `hand` (list[Card]): A list of cards that represents your dealt hand. All Cards use the following format, where both `value` and `suit` are one-letter strings:
 
 ```json
 {
-“value”: “1” | “2” | ... | “9” | “T” | “J” | “Q” | “K” | “A”,
-“suit”: “D” | “H” | “C” | “S”
+"value": "1" | "2" | ... | "9" | "T" | "J" | "Q" | "K" | "A",
+"suit": "D" | "H" | "C" | "S"
 }
 ```
 
@@ -279,17 +279,17 @@ The server will send this message to your bot when it is your turn to play. You 
 
 ```json
 {
-    “id”: BOT_ID, // this is the server’s id for the bot, guaranteed to be unique
-“name”: BOT_NAME, // this is the bot’s chosen name
-“hand”: [CARD, CARD] | [], // this is the bot’s hand. Only your player’s is revealed before the showdown
-“State”: ROUND_STATE, // this is the current state of the bot. Folded // if they haven’t acted this round, otherwise it is the action they // did. “not_played” | “folded” | “called” | “raised” | “all_in”
-“raise_amount”: RAISE_AMOUNT, // this is the number of the chips the bot has bet so far this round
-“total_bet”: TOTAL_BET, // the total amount this bot has bet in the current hand,
-“bank”: BANK // the total number of chips the bot has remaining
+    "id": BOT_ID, // this is the server’s id for the bot, guaranteed to be unique
+"name": BOT_NAME, // this is the bot’s chosen name
+"hand": [CARD, CARD] | [], // this is the bot’s hand. Only your player’s is revealed before the showdown
+"State": ROUND_STATE, // this is the current state of the bot. Folded // if they haven’t acted this round, otherwise it is the action they // did. "not_played" | "folded" | "called" | "raised" | "all_in"
+"raise_amount": RAISE_AMOUNT, // this is the number of the chips the bot has bet so far this round
+"total_bet": TOTAL_BET, // the total amount this bot has bet in the current hand,
+"bank": BANK // the total number of chips the bot has remaining
 }
 ```
 
-NOTE: the bots in this list are sorted in betting order; i.e. the first player in the list is “under the gun” (first to bet), and the last person in the list is the big blind.
+NOTE: the bots in this list are sorted in betting order; i.e. the first player in the list is "under the gun" (first to bet), and the last person in the list is the big blind.
 
 `highest_bid_value` (int): The current highest bid; calling will raise your current bet to this value or do nothing if your current bet is equal.
 
@@ -301,27 +301,27 @@ The server will send this message to your bot when it sends ANY take_action mess
 
 ```json
 {
-    “command”: “confirm_action”,
-“result”: “success” | “error”,
-“error”: ERROR
+    "command": "confirm_action",
+"result": "success" | "error",
+"error": ERROR
 }
 ```
 
-`command` (str): The literal string “confirm_action”
+`command` (str): The literal string "confirm_action"
 
-`result` (str): Either the literal string “success” or “error”, depending on the result of the action
+`result` (str): Either the literal string "success" or "error", depending on the result of the action
 
 `error` (str): Only gets sent if this is an error message. Indicates the type of error with your action. The following error types exist:
 
 `INVALID_INPUT`: your message was malformed (forgot an argument, or was not proper JSON)
 
-`BAD_ACTION_TYPE`: your take_action message indicated an action other than “call”, “raise”, or “fold”
+`BAD_ACTION_TYPE`: your take_action message indicated an action other than "call", "raise", or "fold"
 
 `BAD_VALUE`: your input used the wrong type for an argument (such as a string instead of an integer for raise_amount)
 
 `NOT_EXPECTED`: your message indicated an action which was not allowed at the time (such as a take_action without receiving a request_action)
 
-`INVALID_RAISE_AMOUNT`: your “raise” action indicated a raise amount less than the current highest bid
+`INVALID_RAISE_AMOUNT`: your "raise" action indicated a raise amount less than the current highest bid
 
 > #### **`hand_result`**
 
@@ -329,15 +329,15 @@ The server will send this message to your bot during the showdown of each hand, 
 
 ```json
 {
-    “command”: “hand_result”,
-“game_number”: GAME_NUMBER,
-“hand_number”: HAND_NUMBER,
-“players”: [PLAYER, ...],
-“pots”: [POT, ...]
+    "command": "hand_result",
+"game_number": GAME_NUMBER,
+"hand_number": HAND_NUMBER,
+"players": [PLAYER, ...],
+"pots": [POT, ...]
 }
 ```
 
-`command` (str): The literal string “hand_result”
+`command` (str): The literal string "hand_result"
 
 `game_number` (int): The index of the game within the tournament
 
@@ -349,8 +349,8 @@ The server will send this message to your bot during the showdown of each hand, 
 
 ```json
 {
-    “pot_amount”: POT_AMOUNT, // the size of the pot in chips, and how much was won
-“winner”: WINNER // the full JSON definition for the Player who won the pot
+    "pot_amount": POT_AMOUNT, // the size of the pot in chips, and how much was won
+"winner": WINNER // the full JSON definition for the Player who won the pot
 }
 ```
 
@@ -360,13 +360,13 @@ The server will send this message to your bot whenever it receives a chat from a
 
 ```json
 {
-    “command”: “receive_message”,
-“message”: MESSAGE,
-“author”: AUTHOR
+    "command": "receive_message",
+"message": MESSAGE,
+"author": AUTHOR
 }
 ```
 
-`command` (str): The literal string “receive_message”
+`command` (str): The literal string "receive_message"
 
 `message` (str): The message sent from the bot
 
@@ -378,12 +378,12 @@ The server will send this message to your bot in response to a `get_logs` messag
 
 ```json
 {
-    “command”: “log_data”,
-“logs”: [LOG, ...],
+    "command": "log_data",
+"logs": [LOG, ...],
 }
 ```
 
-`command` (str): The literal string “log_data”
+`command` (str): The literal string "log_data"
 
 `logs` (list[str]): A list of logs from the server. This will be capped at 1k characters (1k bytes), so if you are planning on using this feature, make sure to keep your receive buffer at least that large, otherwise the incoming message will not be valid JSON.
 
@@ -395,17 +395,17 @@ Your bot should send this message in response to a `request_action` message from
 
 ```json
 {
-    “command”: “take_action”,
-“action”: “call” | “raise” | “fold”,
-“raise_amount”: RAISE_AMOUNT
+    "command": "take_action",
+"action": "call" | "raise" | "fold",
+"raise_amount": RAISE_AMOUNT
 }
 ```
 
-`command` (str): The literal string “take_action”
+`command` (str): The literal string "take_action"
 
-`action` (str): One of the literal strings “call”, “raise”, or “fold”. Calling raises your current bet to the current highest bid, which will be 100 if no bets have been made yet. Raising raises your current bet to exactly `raise_amount` (so if you had 60 chips in for the round, and raised to 150, your bot puts 90 chips into the pot). Folding bets nothing and removes you from the hand. Any time your bot attempts to call or raise to more chips than it currently has, it will bet all its chips and be considered “all in”.
+`action` (str): One of the literal strings "call", "raise", or "fold". Calling raises your current bet to the current highest bid, which will be 100 if no bets have been made yet. Raising raises your current bet to exactly `raise_amount` (so if you had 60 chips in for the round, and raised to 150, your bot puts 90 chips into the pot). Folding bets nothing and removes you from the hand. Any time your bot attempts to call or raise to more chips than it currently has, it will bet all its chips and be considered "all in".
 
-`raise_amount` (int): The amount to raise the current highest bid to. Does nothing if the action type is not “raise”. This MUST be at least the current highest bid, or else will be considered an invalid action.
+`raise_amount` (int): The amount to raise the current highest bid to. Does nothing if the action type is not "raise". This MUST be at least the current highest bid, or else will be considered an invalid action.
 
 > #### **`send_chat`**
 
@@ -413,16 +413,16 @@ Sending this message to the server will send a chat message to all players (who 
 
 ```json
 {
-    “command”: “send_chat”,
-“message”: MESSAGE
+    "command": "send_chat",
+"message": MESSAGE
 }
 ```
 
-`command` (str): The literal string “send_chat”
+`command` (str): The literal string "send_chat"
 
 `message` (str): A message to send in the UI as well as to other players. It must not contain any of the following characters
     - Curly Braces `{` or `}`
-    - Unescaped Double Quotes `”`
+    - Unescaped Double Quotes `"`
     - Newlines `\n`
     - Any characters not in the Unicode UTF-8 encoding
 
@@ -432,8 +432,8 @@ Requests a log history from the server, which will be matched with a `log_data` 
 
 ```json
 {
-    “command”: “get_logs”
+    "command": "get_logs"
 }
 ```
 
-`command` (str): The literal string “get_logs”
+`command` (str): The literal string "get_logs"
