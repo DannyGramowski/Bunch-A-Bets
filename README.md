@@ -234,13 +234,13 @@ If you are struggling with getting a Docker deployment working for your bot, fee
 
 ## Gameplay API
 
-The primary gameplay loop consists of your bot receiving a message through the TCP socket (called a `request_action` message) and responding with a `take_action` message. In addition, your bot will receive messages at the end of the round with the result of the round, whenever another player sends a chat, and whenever your bot sends ANY take_action message or ANY invalid message to the server. You should plan to implement a primary loop for receiving and handling messages - whether your code processes information in another thread between actions is up to you. Below is an "API" detailing the server and client (bot) message format - note that the only server message you *must* respond to is the `request_action` message.
+The primary gameplay loop consists of your bot receiving a message through the TCP socket (called a `request_action` message) and responding with a `take_action` message. In addition, your bot will receive messages at the end of the round with the result of the round, whenever another player sends a chat, and whenever your bot sends ANY take_action message or ANY invalid message to the server. You should plan to implement a primary loop for receiving and handling messages. Below is an "API" detailing the server and client (bot) message format - note that the only server message you *must* respond to is the `request_action` message.
 
 ### Server Messages
 
 > #### **`request_action`**
 
-The server will send this message to your bot when it is your turn to play. You must respond to this message within 3 seconds (including network delay), or your action will be forfeited and your bot will be considered folded for the round. Your bot will no longer receive this message once its personal pot is empty (including if you are all-in for a hand), or if it has folded the current hand.
+The server will send this message to your bot when it is your turn to play. You must respond to this message within 3 seconds (including network delay), or your action will be forfeited and your bot will be considered folded for the round. Your bot will no longer receive this message once its personal pot is empty (including if you are all-in for a hand), or if it has folded the current hand. This 3 second window should be the only time you are performing relevant computations for the game. **Do not hog computation resources outside of your window**. Logic for receiving and responding to messages is fine.
 
 ```json
 {
