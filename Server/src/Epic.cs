@@ -8,20 +8,11 @@ public class Epic
     public const int STARTING_BANK = 5000;
     private List<IBot> _bots = new List<IBot>();
     public int requestedPlayers;
-    private List<Process?> botProcesses;
-    private EpicFactory factory;
 
-    public Epic(int requestedPlayers, EpicFactory epicFactory)
+    public Epic(int requestedPlayers)
     {
         this.requestedPlayers = requestedPlayers;
-        this.botProcesses = new List<Process?>();
-        this.factory = epicFactory;
         Thread.Sleep(2000);
-    }
-
-    public void SetProcesses(List<Process?> botProcesses)
-    {
-        this.botProcesses = botProcesses;
     }
 
     public void RunTest()
@@ -35,9 +26,6 @@ public class Epic
         foreach (IBot b in _bots)
         {
             b.Close();
-        }
-        foreach (Process? p in botProcesses) {
-            p?.Kill();
         }
     }
 
@@ -54,21 +42,21 @@ public class Epic
         }
     }
 
-    public void TryStart()
-    {
-        if (IsFilled())
-        {
-            new Thread(() => RunTest()).Start();
-            // RunTest();
-            factory.ClearTestEpic();
-        }
-    }
+    // public void TryStart()
+    // {
+    //     if (IsFilled())
+    //     {
+    //         new Thread(() => RunTest()).Start();
+    //         // RunTest();
+    //         factory.ClearTestEpic();
+    //     }
+    // }
 
-    public void RegisterBot(Bot bot)
+    public void RegisterBot(IBot bot)
     {
         lock (_bots)
         {
-            bot.SetEpic(this);
+            // bot.SetEpic(this);
             _bots.Add(bot);
         }
     }

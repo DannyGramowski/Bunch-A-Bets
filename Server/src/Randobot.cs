@@ -1,8 +1,10 @@
 
 namespace Server;
 
+using Json = Dictionary<string, object>;
+
 public class Randobot : IBot {
-   public int ID => _id;
+    public int ID => _id;
 
     public string Name => $"Randobot {_id}";
 
@@ -17,6 +19,8 @@ public class Randobot : IBot {
     private int _id;
     private BotGameData _gameData;
     private DateTime _lastChatTime;
+
+    private Queue<Json> botResponses = new ();
 
 
     public Randobot(int id, int startingBank) {
@@ -46,14 +50,55 @@ public class Randobot : IBot {
     public void Close() { }
 
     public bool HasMessageReceived() {
-        return true;
+        return botResponses.Count > 0;
     }
 
-    public Dictionary<string, object> ReceiveMessage() {
-        throw new NotImplementedException();
+    public Json ReceiveMessage() {
+        return botResponses.Dequeue();
     }
 
-    public void SendMessage(Dictionary<string, object> message) {
-        throw new NotImplementedException();
+    private Json TakeAction(ActionType action, int betAmount = 0) {
+        Json result = new() {
+            {"command", "take_action"},
+            {"action_type", ActionTypeExtensions.ToActionString(action)}
+        };
+
+        if (betAmount > 0) {
+            result["raise_amount"] = betAmount.ToString();
+        }
+        
+        return result;
+    }
+
+    public void SendMessage(Json message) {
+        string cmd = message["command"].ToString();
+
+        if (cmd == CommandExtensions.ToCommandString(Command.RequestAction)) {
+            var random = new Random();
+            int randomInt = random.Next(1, 11);
+
+            if (randomInt <= 2) {
+                int raiseAmount = random.Next(1, 22) * 10;
+                if (raiseAmount > 200) {
+                    raiseAmount = 2000; //big boi bet
+                }
+                botResponses.Enqueue(TakeAction(ActionType.Raise, raiseAmount));
+            } else if (randomInt <= 4) {
+                botResponses.Enqueue(TakeAction(ActionType.Fold));
+            } else {
+                botResponses.Enqueue(TakeAction(ActionType.Call));
+            }
+        }
+    }
+
+    public override int GetHashCode() {
+        return ID;
+    }
+
+    public override bool Equals(object? obj) {
+        if (obj is Randobot other) {
+            return other.ID == ID;
+        }
+        return false;
     }
 }

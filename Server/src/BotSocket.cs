@@ -81,7 +81,7 @@ public class BotSocket
         Console.WriteLine("Client connected on port " + port);
 
         SendMessage(new Json() { { "Welcome", "hi" } });
-        bot.TryStartEpic();
+        // bot.TryStartEpic();
 
         while (true)
         {

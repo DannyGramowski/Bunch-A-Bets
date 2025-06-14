@@ -17,14 +17,16 @@ public class HttpServer {
 
     private static int GLOBAL_ID = 1;
 
+    public static int GetGlobalBotID() {
+        return GLOBAL_ID++;
+    }
+
     /**
      * This is a blocking call
      * registerBot: function that takes in string name and returns tuple of (id, portNumber)
      */
-    public static void Run(EpicFactory epicFactory)
-    {
-        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-        {
+    public static void Run(EpicFactory epicFactory) {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
             Args = new[] { $"ASPNETCORE_URLS=0.0.0.0:5000" },
             ApplicationName = "HttpRegisterServer",
             ContentRootPath = Directory.GetCurrentDirectory(),
@@ -33,14 +35,12 @@ public class HttpServer {
         builder.WebHost.UseUrls("http://0.0.0.0:5000");
         var app = builder.Build();
 
-        app.MapPost("/register", async (HttpRequest req) =>
-        {
+        app.MapPost("/register", async (HttpRequest req) => {
             bool isRandobot = req.HttpContext.Connection.RemoteIpAddress?.ToString() == "127.0.0.1"; // Please do not attempt to forge this, it's important to prevent recursive logic in game testing
             Console.WriteLine($"New Bot requested to register from {req.HttpContext.Connection.RemoteIpAddress?.ToString()}");
             string? bodyStr = await (new StreamReader(req.Body).ReadToEndAsync());
             Console.WriteLine(bodyStr);
-            if (bodyStr == null)
-            {
+            if (bodyStr == null) {
                 return Results.BadRequest(new { error = "Request body is required" });
             }
             Dictionary<string, JsonElement> body = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(bodyStr);
@@ -56,26 +56,22 @@ public class HttpServer {
 
             int gameSize = 6;
 
-            if ((testGameSize.ValueKind == JsonValueKind.Number) && testGameSize.GetInt32() > 1 && testGameSize.GetInt32() <= 6)
-            {
+            if ((testGameSize.ValueKind == JsonValueKind.Number) && testGameSize.GetInt32() > 1 && testGameSize.GetInt32() <= 6) {
                 gameSize = testGameSize.GetInt32();
             }
 
-            int botId = GLOBAL_ID;
+            int botId = GetGlobalBotID();
             int portNumber = GetOpenPort(isRandobot);
             Bot newBot = new Bot(botId, portNumber, name.GetString(), Epic.STARTING_BANK);
 
-            epicFactory.RegisterBot(newBot, gameSize, isRandobot);
+            epicFactory.RegisterBot(newBot, gameSize);
 
-            var data = new { id = GLOBAL_ID, portNumber = portNumber };
-
-            GLOBAL_ID++;
+            var data = new { id = botId, portNumber = portNumber };
 
             return Results.Json(data);
         });
 
-        app.MapGet("/", (HttpRequest req) =>
-        {
+        app.MapGet("/", (HttpRequest req) => {
             return Results.Text("Hello World!");
         });
 
