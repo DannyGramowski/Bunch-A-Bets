@@ -9,6 +9,8 @@ public class Bot : IBot {
     public int Bank { get { return _bank; } set { _bank = value; } }
     public DateTime LastChatTime{get {return _lastChatTime;} set{ _lastChatTime = value; }}
 
+    private Epic? epic { get; set; }
+
     private BotSocket _socket;
 
     private int _id; //sequential value set based on number of players registered. Starts at 1.
@@ -16,7 +18,6 @@ public class Bot : IBot {
     private int _bank;
     private BotGameData _gameData;
     private DateTime _lastChatTime;
-    // private Epic? epic;
 
     public Bot(int id, int port, string name, int startingBank) {
         _socket = new BotSocket(port, this);
@@ -36,7 +37,7 @@ public class Bot : IBot {
     ///     The amount that was bet. If this is less than inputted, they went all in. To get the amount they went all in, check GameData.PotValue
     /// </returns>
     public int Bet(int amount) {
-        if (amount > Bank) {
+        if (amount >= Bank) {
             amount = Bank;
             Bank = 0;
             _gameData.PotValue += amount;
@@ -78,13 +79,13 @@ public class Bot : IBot {
         return false;
     }
 
-    // public void SetEpic(Epic epic) {
-    //     this.epic = epic;
-    // }
+    public void SetEpic(Epic epic) {
+        this.epic = epic;
+    }
 
-    // public void TryStartEpic() {
-    //     epic?.TryStart();
-    // }
+    public void TryStartEpic() {
+        epic?.TryStart();
+    }
 
     public void Close() {
         _socket.CloseSocket();

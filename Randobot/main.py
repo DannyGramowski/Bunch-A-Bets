@@ -40,7 +40,7 @@ def get_and_handle_message():
             'request_action': handle_request_action,
             'confirm_action': handle_confirm_action,
             'log_data': handle_log_data,
-            'chat_message': handle_chat_message,
+            'receive_chat': handle_chat_message,
             'hand_result': handle_hand_result,
         }
 
@@ -65,7 +65,7 @@ def handle_request_action(msg: dict) -> None:
         take_action('raise', msg['highest_bid_value'] + raise_amount)
     elif random_value <= 4:
         take_action('fold')
-        send_chat(f"I always get the worst cards!")
+        send_chat("I always get the worst cards!")
     else:
         take_action('call')
 
@@ -80,7 +80,7 @@ def handle_log_data(msg: dict) -> None:
 def handle_chat_message(msg: dict) -> None:
     if random.randint(1, 10) == 1:
         # We only do this 10% of the time - no need to spam chat! (You'll only be allowed to send one message every 5 seconds anyways)
-        send_chat(f"Haha! That's pretty funny, {msg['author_name']}")
+        send_chat(f"Haha! Thats pretty funny, {msg['author']['name']}")
 
 def handle_hand_result(msg: dict) -> None:
     return
@@ -118,6 +118,10 @@ def register() -> None:
         'test_game_size': 6
     })
 
+    if req.status_code != 200:
+        print("Failed to connect via HTTP. Is the server running?")
+        sys.exit()
+
     data = json.loads(req.text)
     print(data)
 
@@ -128,6 +132,4 @@ def main():
     print('Shutting down bot.')
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        HOST_ADDR = sys.argv[1]
     main()

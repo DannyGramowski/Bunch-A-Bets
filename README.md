@@ -173,7 +173,7 @@ Request Body:
 }
 ```
 
-`name` (str): This is the name of your bot. It must EXACTLY match the name you register as. It must use the Unicode UTF-8 encoding (no emojis) and be no longer than 30 characters.
+`name` (str): This is the name of your bot. It must EXACTLY match the name you register as. It must use the Unicode UTF-8 encoding (no emojis) and be **no longer than 30 characters**.
 
 `test_game_size` (int): This optional parameter allows you to specify the number of bots[2-6] when running a test game on the server. Defaults to 6 if not specified. See [Testing Your Bot](#testing-your-bot)
 
@@ -224,7 +224,7 @@ The Randobot is a dummy example bot which can be found in the `Randobot/` folder
 
 ## Testing Your Bot
 
-Before the tournament date, the gameplay server will be running 24/7 in "testing mode". You can connect to the server and play a test game against a specified number of bots. This will allow you to run a demo game against very, very bad bots just to make sure your bot runs properly and responds correctly to the message types. As specified in [Bot Registration](#bot-registration), you may pass the optional `test_game_size` parameter in order to change the game size. This game will run for a maximum of 24 hands (the same as High Noon).
+Before the tournament date, the gameplay server will be running 24/7 in "testing mode". You can connect to the server and play a test game against a specified number of bots. This will allow you to run a demo game against very, very bad bots just to make sure your bot runs properly and responds correctly to the message types. As specified in [Bot Registration](#bot-registration), you may pass the optional `test_game_size` parameter in order to change the game size. This game will run for a maximum of 6 hands.
 
 On the day of the competition, the /request command will change its functionality, and instead wait until the tournament begins to start sending requests to your bot.
 
@@ -283,8 +283,8 @@ The server will send this message to your bot when it is your turn to play. You 
 "name": BOT_NAME, // this is the bot’s chosen name
 "hand": [CARD, CARD] | [], // this is the bot’s hand. Only your player’s is revealed before the showdown
 "State": ROUND_STATE, // this is the current state of the bot. Folded // if they haven’t acted this round, otherwise it is the action they // did. "not_played" | "folded" | "called" | "raised" | "all_in"
-"pot_value": POT_VALUE, // this is the number of the chips the bot has bet so far this round
-"total_bet": TOTAL_BET, // the total amount this bot has bet in the current hand,
+"round_bet": POT_VALUE, // this is the number of the chips the bot has bet so far this round
+"hand_bet": TOTAL_BET, // the total amount this bot has bet in the current hand
 "bank": BANK // the total number of chips the bot has remaining
 }
 ```
@@ -350,7 +350,7 @@ The server will send this message to your bot during the showdown of each hand, 
 ```json
 {
     "pot_amount": POT_AMOUNT, // the size of the pot in chips, and how much was won
-"winner": WINNER // the full JSON definition for the Player who won the pot
+"winners": [PLAYER, ...] // the full JSON definition for all Players who split the pot (usually just one)
 }
 ```
 
@@ -385,7 +385,7 @@ The server will send this message to your bot in response to a `get_logs` messag
 
 `command` (str): The literal string "log_data"
 
-`logs` (list[str]): A list of logs from the server. This will be capped at 1k characters (1k bytes), so if you are planning on using this feature, make sure to keep your receive buffer at least that large, otherwise the incoming message will not be valid JSON.
+`logs` (list[str]): A list of logs from the server. This will be capped at 2k characters (2k bytes), so if you are planning on using this feature, make sure to keep your receive buffer at least that large, otherwise the incoming message will not be valid JSON.
 
 ### Client Messages
 

@@ -5,6 +5,7 @@ public class BotGameData {
     public BotRoundState RoundState;
     public int PotValue;
     public int PotValueOfHand; //Can only earn up to this amount per player in all ins
+    public int PotValueOfHandCache = 0;
 
     public BotGameData() { }
 
@@ -18,15 +19,18 @@ public class BotGameData {
     public void NewHand(List<Card> cards)
     {
         if (cards.Count != 2) Console.Error.WriteLine("Invalid number of cards");
+        RoundState = BotRoundState.NotPlayed; // Necessary since RoundState is not always reset in NewRound
         Cards = cards;
         PotValueOfHand = 0;
         NewRound();
     }
 
     public void NewRound() {
-        if (!StillBidding()) return;
-        RoundState = BotRoundState.NotPlayed;
         PotValue = 0;
+        if (StillBidding())
+        {
+            RoundState = BotRoundState.NotPlayed;
+        }
     }
 
     public bool StillBidding() {

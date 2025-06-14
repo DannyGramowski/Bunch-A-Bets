@@ -30,7 +30,7 @@ public class Randobot : IBot {
     }
 
     public int Bet(int amount) {
-        if (amount > Bank) {
+        if (amount >= Bank) {
             amount = Bank;
             Bank = 0;
             _gameData.PotValue += amount;
@@ -69,23 +69,41 @@ public class Randobot : IBot {
         
         return result;
     }
+    
+    private Json SendChat(string chatMessage) {
+        Json result = new() {
+            {"command", "send_chat"},
+            {"message", chatMessage}
+        };
+        return result;
+    }
 
-    public void SendMessage(Json message) {
+    public void SendMessage(Json message)
+    {
         string cmd = message["command"].ToString();
 
-        if (cmd == CommandExtensions.ToCommandString(Command.RequestAction)) {
+        if (cmd == CommandExtensions.ToCommandString(Command.RequestAction))
+        {
             var random = new Random();
             int randomInt = random.Next(1, 11);
 
-            if (randomInt <= 2) {
+            if (randomInt <= 2)
+            {
+                int highestBidValue = int.Parse(message["highest_bid_value"].ToString());
                 int raiseAmount = random.Next(1, 22) * 10;
-                if (raiseAmount > 200) {
+                if (raiseAmount > 200)
+                {
                     raiseAmount = 2000; //big boi bet
                 }
-                botResponses.Enqueue(TakeAction(ActionType.Raise, raiseAmount));
-            } else if (randomInt <= 4) {
+                botResponses.Enqueue(TakeAction(ActionType.Raise, highestBidValue + raiseAmount));
+            }
+            else if (randomInt <= 4)
+            {
                 botResponses.Enqueue(TakeAction(ActionType.Fold));
-            } else {
+                botResponses.Enqueue(SendChat("I always get the worst cards!"));
+            }
+            else
+            {
                 botResponses.Enqueue(TakeAction(ActionType.Call));
             }
         }

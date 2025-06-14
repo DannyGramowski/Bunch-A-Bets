@@ -10,9 +10,16 @@ using System.Threading;
 
 using Json = Dictionary<string, object>;
 using System.Text.RegularExpressions;
+using System.Text.Encodings.Web;
 
 public class BotSocket
 {
+    
+    private static JsonSerializerOptions unsafeJsonOptions = new JsonSerializerOptions
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
+
 
     private TcpListener? _listener;
     private TcpClient? _client;
@@ -69,56 +76,82 @@ public class BotSocket
 
         // Needs error handling here in case we accidentally double-assigned a port
 
-        _listener = new TcpListener(IPAddress.Parse(ServerUtils.IP), port);
-        _listener.Start();
-        Console.WriteLine($"Server started on {ServerUtils.IP}:{port} waiting for connections...");
+        try
+        {
+            _listener = new TcpListener(IPAddress.Parse(ServerUtils.IP), port);
+            _listener.Start();
+            Console.WriteLine($"Server started on {ServerUtils.IP}:{port} waiting for connections...");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Failed to open up listener on port {port} for bot: {bot.Name} ({bot.ID}). Error: {e.Message} {e.StackTrace}");
+        }
 
-        _client = _listener.AcceptTcpClient();
-        Console.WriteLine("Getting Stream");
-        _stream = _client.GetStream();
-        Console.WriteLine("GOT STREAM");
-        Ready = true;
-        Console.WriteLine("Client connected on port " + port);
+        try
+        {
+            _client = _listener.AcceptTcpClient();
+            Console.WriteLine("Getting Stream");
+            _stream = _client.GetStream();
+            Console.WriteLine("GOT STREAM");
+            Ready = true;
+            Console.WriteLine("Client connected on port " + port);
 
-        SendMessage(new Json() { { "Welcome", "hi" } });
-        // bot.TryStartEpic();
+            SendMessage(new Json() { { "Welcome", "hi" } });
+            bot.TryStartEpic();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Failed to receive a connection message on {port} for bot: {bot.Name} ({bot.ID}). Error: {e.Message} {e.StackTrace}");
+        }
 
         while (true)
         {
-            if (_outgoingMessages.Count > 0)
+            try
             {
-                Json outgoingMessage;
-
-                lock (_outgoingMessages)
+                if (_outgoingMessages.Count > 0)
                 {
-                    outgoingMessage = _outgoingMessages.Dequeue();
+                    Json outgoingMessage;
+
+                    lock (_outgoingMessages)
+                    {
+                        outgoingMessage = _outgoingMessages.Dequeue();
+                    }
+                    SendMessageHelper(outgoingMessage);
                 }
-                SendMessageHelper(outgoingMessage);
+            } catch (Exception e)
+            {
+                Console.WriteLine($"Failed to send messages to: {bot.Name} ({bot.ID}). Error: {e.Message} {e.StackTrace}");
             }
 
-            List<Json> incomingMessage = ReceiveMessage();
-            if (incomingMessage.Count > 0)
+            try
             {
-                lock (_incomingMessages)
+                List<Json> incomingMessage = ReceiveMessage();
+                if (incomingMessage.Count > 0)
                 {
-                    foreach (Json j in incomingMessage)
+                    lock (_incomingMessages)
                     {
-                        _incomingMessages.Enqueue(j);
+                        foreach (Json j in incomingMessage)
+                        {
+                            _incomingMessages.Enqueue(j);
+                        }
                     }
                 }
-            }
 
+            } catch (Exception e)
+            {
+                Console.WriteLine($"Failed to receive messages from: {bot.Name} ({bot.ID}). Error: {e.Message} {e.StackTrace}");
+            }
+            
             Thread.Sleep(10);
-            //wait for 5ms
         }
     }
 
     private void SendMessageHelper(Json message)
     {
-        string json = JsonSerializer.Serialize(message);
+        string json = JsonSerializer.Serialize(message, unsafeJsonOptions);
         byte[] data = Encoding.UTF8.GetBytes(json + "\n");
         if (_stream == null) return;
-        try // TODO situations like this can cause crashes throughout the program - need a better approach to error handling throughout
+        try
         {
             _stream.Write(data, 0, data.Length);
             _stream.Flush();
@@ -166,6 +199,7 @@ public class BotSocket
 
             if (messages.Count == 0)
             {
+                Console.WriteLine("Invalid received object " + json);
                 return new List<Json>();
             }
 

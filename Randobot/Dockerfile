@@ -15,6 +15,4 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Run the bot
-# host.docker.internal will redirect to 127.0.0.1 on the host machine when running through Docker.
-# To test this Dockerfile, change this to the server's IP address.
-CMD ["python", "main.py", "host.docker.internal"]
+CMD ["python", "main.py"]

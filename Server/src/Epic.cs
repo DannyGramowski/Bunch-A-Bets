@@ -19,13 +19,28 @@ public class Epic
     {
         lock (_bots)
         {
-            Game game = new Game(_bots, false);
-            game.PlayGame(24);
+            try
+            {
+                Game game = new Game(_bots, false);
+                game.PlayGame(6);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Something major failed when running game. Error: {e.Message} {e.StackTrace}");
+            }
+            
         }   
         Console.WriteLine("Finished Test Game");
-        foreach (IBot b in _bots)
+        try
         {
-            b.Close();
+            foreach (IBot b in _bots)
+            {
+                b.Close();
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Failed to close bot sockets. Error: {e.Message} {e.StackTrace}");
         }
     }
 
@@ -42,21 +57,21 @@ public class Epic
         }
     }
 
-    // public void TryStart()
-    // {
-    //     if (IsFilled())
-    //     {
-    //         new Thread(() => RunTest()).Start();
-    //         // RunTest();
-    //         factory.ClearTestEpic();
-    //     }
-    // }
+    public void TryStart()
+    {
+        Console.WriteLine("Here");
+        if (IsFilled())
+        {
+            Console.WriteLine("heaahdhuashdu");
+            new Thread(() => RunTest()).Start();
+        }
+    }
 
     public void RegisterBot(IBot bot)
     {
         lock (_bots)
         {
-            // bot.SetEpic(this);
+            bot.SetEpic(this);
             _bots.Add(bot);
         }
     }
