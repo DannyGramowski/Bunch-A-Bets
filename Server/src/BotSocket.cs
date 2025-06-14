@@ -78,7 +78,7 @@ public class BotSocket
 
         try
         {
-            _listener = new TcpListener(IPAddress.Parse(ServerUtils.IP), port);
+            _listener = new TcpListener(IPAddress.Any, port);
             _listener.Start();
             Console.WriteLine($"Server started on {ServerUtils.IP}:{port} waiting for connections...");
         }
