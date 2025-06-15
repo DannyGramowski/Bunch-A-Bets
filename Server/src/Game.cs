@@ -167,6 +167,7 @@ public class Game
         int[] roundCards = [0, 3, 1, 1];
 
         _centerCards.Clear();
+        _roundStage = RoundStage.PreFlop;
 
         bool result;
         for (int r = 0; r < 4; r++)
@@ -176,6 +177,7 @@ public class Game
                 _centerCards.Add(_deck.DrawCard());
             }
             result = PlayRound();
+            _roundStage += 1;
             if (result)
             {
                 break;
