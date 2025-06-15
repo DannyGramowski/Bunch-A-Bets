@@ -31,21 +31,22 @@ def create_websocket(port):
 
 def get_and_handle_message():
     try:
-        incoming_str = client_socket.recv(2048)
+        incoming_str = client_socket.recv(4096)
         print('Received message from server:', incoming_str)
-        incoming_message = json.loads(incoming_str)
-        command_type = incoming_message.get('command')
-        
-        command_callbacks = {
-            'request_action': handle_request_action,
-            'confirm_action': handle_confirm_action,
-            'log_data': handle_log_data,
-            'receive_chat': handle_chat_message,
-            'hand_result': handle_hand_result,
-        }
+        for msg_part in [s for s in incoming_str.decode('utf-8').split('\n') if s]: 
+            incoming_message = json.loads(msg_part)
+            command_type = incoming_message.get('command')
+            
+            command_callbacks = {
+                'request_action': handle_request_action,
+                'confirm_action': handle_confirm_action,
+                'log_data': handle_log_data,
+                'receive_chat': handle_chat_message,
+                'hand_result': handle_hand_result,
+            }
 
-        if command_callbacks.get(command_type):
-            command_callbacks[command_type](incoming_message)
+            if command_callbacks.get(command_type):
+                command_callbacks[command_type](incoming_message)
 
     except KeyboardInterrupt as k:
         raise k
