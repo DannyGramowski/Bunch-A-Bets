@@ -60,11 +60,22 @@ public class HttpServer {
                     gameSize = testGameSize.GetInt32();
                 }
 
+                JsonElement testHandCount;
+                body.TryGetValue("test_hand_count", out testHandCount);
+
+                int handCount = 6;
+
+                if ((testHandCount.ValueKind == JsonValueKind.Number) && testHandCount.GetInt32() >= 1 && testHandCount.GetInt32() <= 24)
+                {
+                    handCount = testHandCount.GetInt32();
+                }
+
+
                 int botId = GetGlobalBotID();
                 int portNumber = GetOpenPort();
                 Bot newBot = new Bot(botId, portNumber, name.GetString(), Epic.STARTING_BANK);
 
-                epicFactory.RegisterBot(newBot, gameSize);
+                epicFactory.RegisterBot(newBot, gameSize, handCount);
 
                 var data = new { id = botId, portNumber = portNumber };
                 return Results.Json(data);

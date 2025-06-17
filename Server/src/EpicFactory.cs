@@ -8,10 +8,9 @@ namespace Server;
 
 public class EpicFactory {
     private Epic? tournamentEpic;
-    private List<Process?> processes = new List<Process?>();
     private bool isTournament = false;
 
-    public bool RegisterBot(Bot bot, int requestedPlayers) {
+    public bool RegisterBot(Bot bot, int requestedPlayers, int gameCount) {
         if (isTournament)
         {
             // just add the bot to the single existing epic
@@ -24,7 +23,7 @@ public class EpicFactory {
         }
         else
         {
-            Epic testEpic = new Epic(requestedPlayers);
+            Epic testEpic = new Epic(requestedPlayers, gameCount);
             testEpic.RegisterBot(bot);
 
             for (int i = 1; i < requestedPlayers; i++)

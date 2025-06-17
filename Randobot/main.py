@@ -6,7 +6,8 @@ import time
 import sys
 
 client_socket: socket.socket = None
-HOST_ADDR = '64.201.234.55'  # Must match the server's IP; note that this is provided through the dockerfile
+# HOST_ADDR = '64.201.234.55'  # Must match the server's IP; note that this is provided through the dockerfile
+HOST_ADDR = '127.0.0.1'  # Must match the server's IP; note that this is provided through the dockerfile
 
 def create_websocket(port):
     host = HOST_ADDR
@@ -66,7 +67,8 @@ def handle_request_action(msg: dict) -> None:
         take_action('raise', msg['highest_bid_value'] + raise_amount)
     elif random_value <= 4:
         take_action('fold')
-        send_chat("I always get the worst cards!")
+        if random_value == 4:
+            send_chat("I always get the worst cards!")
     else:
         take_action('call')
 
@@ -116,7 +118,8 @@ def register() -> None:
     print(name)
     req = requests.post(f'http://{HOST_ADDR}:5000/register', json={
         'name': name,
-        'test_game_size': 6
+        'test_game_size': 6,
+        'test_hand_count': 6,
     })
 
     if req.status_code != 200:

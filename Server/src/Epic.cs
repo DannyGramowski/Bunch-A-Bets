@@ -8,10 +8,12 @@ public class Epic
     public const int STARTING_BANK = 5000;
     private List<IBot> _bots = new List<IBot>();
     public int requestedPlayers;
+    private int handCount;
 
-    public Epic(int requestedPlayers)
+    public Epic(int requestedPlayers, int handCount)
     {
         this.requestedPlayers = requestedPlayers;
+        this.handCount = handCount;
         Thread.Sleep(2000);
     }
 
@@ -22,7 +24,7 @@ public class Epic
             try
             {
                 Game game = new Game(_bots, false);
-                game.PlayGame(6);
+                game.PlayGame(handCount);
             }
             catch (Exception e)
             {

@@ -169,13 +169,16 @@ Content-Type: application/json
 Request Body:
 {
     "name": NAME,
-    "test_game_size": TEST_GAME_SIZE
+    "test_game_size": TEST_GAME_SIZE,
+    "test_hand_count": TEST_HAND_COUNT,
 }
 ```
 
 `name` (str): This is the name of your bot. It must EXACTLY match the name you register as. It must use the Unicode UTF-8 encoding (no emojis) and be **no longer than 30 characters**.
 
 `test_game_size` (int): This optional parameter allows you to specify the number of bots[2-6] when running a test game on the server. Defaults to 6 if not specified. See [Testing Your Bot](#testing-your-bot)
+
+`test_hand_count` (int): This optional parameter allows ou to specify the number of test hands[1-24] when running a test game on the server. Defaults to 6 if not specified. 
 
 This endpoint returns a JSON response in the following format:
 
@@ -224,7 +227,7 @@ The Randobot is a dummy example bot which can be found in the `Randobot/` folder
 
 ## Testing Your Bot
 
-Before the tournament date, the gameplay server will be running 24/7 in "testing mode". You can connect to the server and play a test game against a specified number of bots. This will allow you to run a demo game against very, very bad bots just to make sure your bot runs properly and responds correctly to the message types. As specified in [Bot Registration](#bot-registration), you may pass the optional `test_game_size` parameter in order to change the game size. This game will run for a maximum of 6 hands.
+Before the tournament date, the gameplay server will be running 24/7 in "testing mode". You can connect to the server and play a test game against a specified number of bots. This will allow you to run a demo game against very, very bad bots just to make sure your bot runs properly and responds correctly to the message types. As specified in [Bot Registration](#bot-registration), you may pass the optional `test_game_size` parameter in order to change the game size. This game will run for a maximum of 6 hands. In addition you may pass the optional `test_hand_size` parameter to change the number of hands played depending on what you are trying to test. 
 
 On the day of the competition, the /request command will change its functionality, and instead wait until the tournament begins to start sending requests to your bot.
 
