@@ -191,8 +191,13 @@ public class Game
 
         List<Json> pots = HandleShowdown(_bots, _centerCards, _totalPot);
         Json handResultData = GetHandResultData(pots);
+        bool alreadyLogged = false;
         foreach (IBot b in _bots) {
             b.SendMessage(handResultData);
+            if (Program.VERBOSE_DEBUGGING || !alreadyLogged) {
+                WriteLog(b, true, handResultData, true);
+                alreadyLogged = true;
+            }
         }
         _totalPot = 0;
     }
@@ -208,7 +213,9 @@ public class Game
         foreach (IBot bot in _bots)
         {
             bot.GameData.NewRound();
-            Console.WriteLine($"Bot state is {bot.GameData.RoundState}");
+            if (Program.VERBOSE_DEBUGGING) {
+                Console.WriteLine($"Bot state is {bot.GameData.RoundState}");
+            }
         }
 
         _highestBidValue = 0;
@@ -240,7 +247,6 @@ public class Game
         bool continueRound = true;
         while (continueRound)
         {
-            Console.WriteLine($"numberRoundTime{_numberTimesRaiseThisRound}");
             continueRound = false;
             foreach (IBot bot in _bots)
             {
@@ -331,11 +337,11 @@ public class Game
             return pots;
         }
 
-        foreach (IBot b in botsCopy)
-        {
-            Console.WriteLine(b.ToString());
+        if (Program.VERBOSE_DEBUGGING) {
+            foreach (IBot b in botsCopy) {
+                Console.WriteLine(b.ToString());
+            }
         }
-        Console.WriteLine(centerCards.Count);
 
         int count = 5;// prevent infinite loops
         foreach (IBot b in botsCopy)
@@ -410,6 +416,7 @@ public class Game
 
                 botsCopy.Remove(winningBot);
             }
+
 
             pots.Add(new Json()
             {
@@ -524,18 +531,24 @@ public class Game
         bot.LastChatTime = DateTime.Now;
     }
 
-    private void WriteLog(IBot bot, bool outgoing, string str)
-    {
+    private void WriteLog(IBot bot, bool outgoing, string str, bool logAnyways = false) {
+        if (!Program.VERBOSE_DEBUGGING && outgoing && !logAnyways) {
+            //dont log outgoing messages if we dont want the entire log.
+            return;
+        }
         string outgoingString = outgoing ? "received" : "sent";
+
         string escapedStr = str.Replace("\"", "'");
+     
         string log = $"({DateTime.Now}) {bot.Name} {outgoingString}: {escapedStr}";
         _logs.Add(log);
         Console.WriteLine(log);
+            
     }
 
-    private void WriteLog(IBot bot, bool outgoing, Json data)
+    private void WriteLog(IBot bot, bool outgoing, Json data, bool logAnyways = false)
     {
-        WriteLog(bot, outgoing, JsonSerializer.Serialize(data));
+        WriteLog(bot, outgoing, JsonSerializer.Serialize(data), logAnyways);
     }
 
     private void SendLogs(IBot bot)

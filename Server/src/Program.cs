@@ -5,18 +5,12 @@ using System;
 using Server;
 
 class Program {
+    public const bool VERBOSE_DEBUGGING = false;
     public static void Main(string[] args) {
-        // Deck deck = new Deck();
-        //
-        // Console.WriteLine(deck);
-        // HttpServer.Run(Register); //blocking call
-        if (args.Length == 1)
-        {
+        if (args.Length == 1) {
             RandobotService.randobotFilename = args[0];
         }
         EpicFactory epicFactory = new EpicFactory();
         new Thread(() => HttpServer.Run(epicFactory)).Start();
     }
 }
-
-// Console.WriteLine("Hello, World!");

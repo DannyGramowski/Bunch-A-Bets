@@ -59,10 +59,8 @@ public class Epic
 
     public void TryStart()
     {
-        Console.WriteLine("Here");
         if (IsFilled())
         {
-            Console.WriteLine("heaahdhuashdu");
             new Thread(() => RunTest()).Start();
         }
     }

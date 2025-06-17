@@ -90,9 +90,7 @@ public class BotSocket
         try
         {
             _client = _listener.AcceptTcpClient();
-            Console.WriteLine("Getting Stream");
             _stream = _client.GetStream();
-            Console.WriteLine("GOT STREAM");
             Ready = true;
             Console.WriteLine("Client connected on port " + port);
 

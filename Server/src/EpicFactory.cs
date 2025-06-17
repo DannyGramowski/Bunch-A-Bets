@@ -27,8 +27,6 @@ public class EpicFactory {
             Epic testEpic = new Epic(requestedPlayers);
             testEpic.RegisterBot(bot);
 
-            Console.WriteLine(requestedPlayers);
-
             for (int i = 1; i < requestedPlayers; i++)
             {
                 Randobot randobot = new Randobot(HttpServer.GetGlobalBotID(), Epic.STARTING_BANK);
