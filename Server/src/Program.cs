@@ -5,7 +5,7 @@ using System;
 using Server;
 
 class Program {
-    public const bool VERBOSE_DEBUGGING = false;
+    public const bool VERBOSE_DEBUGGING = true;
     public static void Main(string[] args) {
         if (args.Length == 1) {
             RandobotService.randobotFilename = args[0];

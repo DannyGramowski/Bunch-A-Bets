@@ -20,7 +20,7 @@ public class Randobot : IBot {
     private BotGameData _gameData;
     private DateTime _lastChatTime;
 
-    private Queue<Json> botResponses = new ();
+    private Queue<Json> botResponses = new();
 
 
     public Randobot(int id, int startingBank) {
@@ -66,10 +66,10 @@ public class Randobot : IBot {
         if (betAmount > 0) {
             result["raise_amount"] = betAmount.ToString();
         }
-        
+
         return result;
     }
-    
+
     private Json SendChat(string chatMessage) {
         Json result = new() {
             {"command", "send_chat"},
@@ -78,32 +78,24 @@ public class Randobot : IBot {
         return result;
     }
 
-    public void SendMessage(Json message)
-    {
+    public void SendMessage(Json message) {
         string cmd = message["command"].ToString();
 
-        if (cmd == CommandExtensions.ToCommandString(Command.RequestAction))
-        {
+        if (cmd == CommandExtensions.ToCommandString(Command.RequestAction)) {
             var random = new Random();
             int randomInt = random.Next(1, 11);
 
-            if (randomInt <= 2)
-            {
+            if (randomInt <= 2) {
                 int highestBidValue = int.Parse(message["highest_bid_value"].ToString());
                 int raiseAmount = random.Next(1, 22) * 10;
-                if (raiseAmount > 200)
-                {
+                if (raiseAmount > 200) {
                     raiseAmount = 2000; //big boi bet
                 }
                 botResponses.Enqueue(TakeAction(ActionType.Raise, highestBidValue + raiseAmount));
-            }
-            else if (randomInt <= 4)
-            {
+            } else if (randomInt <= 4) {
                 botResponses.Enqueue(TakeAction(ActionType.Fold));
                 botResponses.Enqueue(SendChat("I always get the worst cards!"));
-            }
-            else
-            {
+            } else {
                 botResponses.Enqueue(TakeAction(ActionType.Call));
             }
         }
@@ -118,5 +110,9 @@ public class Randobot : IBot {
             return other.ID == ID;
         }
         return false;
+    }
+
+    public override string ToString() {
+        return $"ID: {ID}, Name: {Name}, Bank: {Bank}, Cards: {string.Join(",", GameData.Cards)}";
     }
 }

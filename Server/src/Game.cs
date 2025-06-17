@@ -194,7 +194,7 @@ public class Game
         bool alreadyLogged = false;
         foreach (IBot b in _bots) {
             b.SendMessage(handResultData);
-            if (Program.VERBOSE_DEBUGGING || !alreadyLogged) {
+            if (!alreadyLogged) {
                 WriteLog(b, true, handResultData, true);
                 alreadyLogged = true;
             }
@@ -527,7 +527,7 @@ public class Game
             b.SendMessage(response);
         }
 
-        WriteLog(bot, false, response);
+        WriteLog(bot, true, response);
         bot.LastChatTime = DateTime.Now;
     }
 
