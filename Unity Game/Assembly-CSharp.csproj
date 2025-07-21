@@ -58,11 +58,13 @@
     <Compile Include="Assets\Scripts\serverCode\Bot.cs" />
     <Compile Include="Assets\Scripts\serverCode\BotSocket.cs" />
     <Compile Include="Assets\Scripts\serverCode\BotRoundState.cs" />
+    <Compile Include="Assets\Scripts\ChipPileTransport.cs" />
     <Compile Include="Assets\Scripts\serverCode\Program.cs" />
     <Compile Include="Assets\Scripts\serverCode\RandobotService.cs" />
     <Compile Include="Assets\Scripts\serverCode\Card.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\Scripts\serverCode\IBot.cs" />
+    <Compile Include="Assets\Scripts\ChipPile.cs" />
     <Compile Include="Assets\Scripts\serverCode\BotGameData.cs" />
     <Compile Include="Assets\Scripts\CardLayout.cs" />
     <Compile Include="Assets\Scripts\serverCode\Command.cs" />
