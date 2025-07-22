@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class MBPlayer : MonoBehaviour {
     [SerializeField] CardLayout cardLayout;
+    [SerializeField] ChipPile bankPile;
+    [SerializeField] ChipPile potPile;
     [SerializeField] TextMeshProUGUI text;
     [SerializeField] string playerName;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
