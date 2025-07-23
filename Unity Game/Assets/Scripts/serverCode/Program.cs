@@ -14,6 +14,7 @@ class Program
     {
         EpicFactory epicFactory = new EpicFactory();
         new Thread(() => HttpServer.Run(epicFactory)).Start();
+        Debug.Log("Out of here");
     }
 
     public static int Random(int a, int b)

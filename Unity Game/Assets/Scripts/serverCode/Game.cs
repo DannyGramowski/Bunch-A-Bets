@@ -123,6 +123,7 @@ namespace Server
         public void PlayGame(int numGames)
         {
             _logs = new List<string>();
+            GameManager.RunOnMainThread(() => GameManager.Manager.SetPlayers(_bots));
             for (int i = 0; i < numGames; i++)
             {
                 try
@@ -221,6 +222,12 @@ namespace Server
             //clear bot pots and reset round states for those still playing
             foreach (IBot bot in _bots)
             {
+                
+                if (bot.GameData.PotValue > 0)
+                {
+                    int amount = bot.GameData.PotValue;
+                    GameManager.RunOnMainThread(() => GameManager.Manager.GetPlayerByBotId(bot.ID).PushChips(amount));
+                }
                 bot.GameData.NewRound();
                 if (Program.VERBOSE_DEBUGGING)
                 {
@@ -355,11 +362,14 @@ namespace Server
                 }
             }
 
+            Dictionary<int, int> botToTotalEarnings = new Dictionary<int, int>();
             int count = 5;// prevent infinite loops
             foreach (IBot b in botsCopy)
             {
                 b.CacheHandBet();
+                botToTotalEarnings.Add(b.ID, 0);
             }
+
 
             //I understand this is complicated. Unfortunatley due to edges cases like ties and bots can only win what they bet it is like this.
             while (totalPot > 0 && count > 0)
@@ -405,6 +415,7 @@ namespace Server
                             //this will get called multiple times if there is a tie but PotValueOf Hand will be 0 after the first time so it wont do anything
                             if (bot.GameData.PotValueOfHand == 0) continue;
                             bot.Bank += bot.GameData.PotValueOfHand;
+                            botToTotalEarnings[bot.ID] += bot.GameData.PotValueOfHand;
                             sidePotValue += bot.GameData.PotValueOfHand;
                             totalPot -= bot.GameData.PotValueOfHand;
                             bot.GameData.PotValueOfHand = 0;
@@ -413,6 +424,7 @@ namespace Server
                         {
                             int value = Math.Min(botBets[winningBot.ID], botBets[bot.ID] / highestHands.Count);
                             winningBot.Bank += value;
+                            botToTotalEarnings[winningBot.ID] += value;
                             sidePotValue += value; // Yes, this might mean that the pot isn't equally split among bots here. Shame. If this comes up in the tournament I will personally give you a b**wjob for free. And I hope it happens.
                             totalPot -= value;
                             bot.GameData.PotValueOfHand -= value;
@@ -438,6 +450,17 @@ namespace Server
 
                 count--;
             }
+
+            // Now we deliver the goods
+            foreach (KeyValuePair<int, int> kvp in botToTotalEarnings)
+            {
+                if (kvp.Value > 0)
+                {
+                    int amount = kvp.Value;
+                    GameManager.RunOnMainThread(() => GameManager.Manager.GetPlayerByBotId(kvp.Key).WinPot(amount));
+                }
+            }
+
             return pots;
         }
 
@@ -517,6 +540,10 @@ namespace Server
         {
             int actualBetAmount = bot.Bet(amount - bot.GameData.PotValue);
             _totalPot += actualBetAmount;
+            if (actualBetAmount > 0)
+            {
+                GameManager.RunOnMainThread(() => GameManager.Manager.GetPlayerByBotId(bot.ID).Bet(actualBetAmount));
+            }
             if (bot.GameData.PotValue > _highestBidValue)
             {
                 _highestBidValue = bot.GameData.PotValue;

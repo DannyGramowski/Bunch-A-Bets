@@ -2,25 +2,30 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-public class ChipPile : MonoBehaviour {
+public class ChipPile : MonoBehaviour
+{
     [SerializeField] protected int amount = 1000;
     [SerializeField] bool spawn = false;
     [SerializeField] ChipPileTransport transportPrefab;
     [SerializeField] TextMeshProUGUI amountText;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start() {
-        
+    void Start()
+    {
+
     }
 
     // Update is called once per frame
-    void Update() {
+    void Update()
+    {
         amountText.text = amount.ToString();
 
-        if(Input.GetKeyDown(KeyCode.T) && spawn) {
+        if (Input.GetKeyDown(KeyCode.T) && spawn)
+        {
             ChipPile other = FindObjectsOfType<ChipPile>().Where((ChipPile pile) => pile != this).First();
 
-            if(other == null) {
+            if (other == null)
+            {
                 Debug.LogError("no other chip pile found");
             }
 
@@ -28,10 +33,13 @@ public class ChipPile : MonoBehaviour {
         }
     }
 
-    public void SendTo(int amount, ChipPile other) {
-        if(amount > this.amount) {
+    public void SendTo(int amount, ChipPile other)
+    {
+        if (amount > this.amount)
+        {
             Debug.LogWarning($"{name}tried to send more chips than it had");
-            return;
+            // return; // Can't hard stop here because this could happen due to race conditions
+            // It's just like negative inventory :O (i know that guy)
         }
 
         this.amount -= amount;
@@ -39,8 +47,19 @@ public class ChipPile : MonoBehaviour {
         transport.Init(amount, other);
     }
 
-    public void Merge(ChipPileTransport pile) {
+    public void Merge(ChipPileTransport pile)
+    {
         amount += pile.amount;
         Destroy(pile.gameObject);
+    }
+
+    public void SetRawAmount(int amount)
+    {
+        this.amount = amount;
+    }
+
+    public int GetAmount()
+    {
+        return amount;
     }
 }

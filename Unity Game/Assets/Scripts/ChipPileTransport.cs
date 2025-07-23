@@ -2,7 +2,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 public class ChipPileTransport : ChipPile {
-    [SerializeField] float time = 1;
+    [SerializeField] float time = 0.4f;
     [SerializeField] ChipPile destinationPile;
 
     private float speed;

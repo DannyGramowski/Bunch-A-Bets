@@ -49,6 +49,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardLayout: {fileID: 0}
+  bankPile: {fileID: 0}
+  potPile: {fileID: 0}
   text: {fileID: 0}
   playerName: Player 1
 --- !u!1 &5364015888121645780
@@ -245,8 +247,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 10
-  m_fontSizeBase: 10
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -359,11 +361,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8080018685237196991, guid: 0daa66cc4c4c7a548be394699d00fdb6, type: 3}
       propertyPath: m_fontSize
-      value: 5
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 8080018685237196991, guid: 0daa66cc4c4c7a548be394699d00fdb6, type: 3}
       propertyPath: m_fontSizeBase
-      value: 5
+      value: 15
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

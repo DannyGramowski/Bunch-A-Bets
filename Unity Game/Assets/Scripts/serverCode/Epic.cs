@@ -26,9 +26,10 @@ namespace Server
         {
             lock (_bots)
             {
+                    Debug.Log($"Thread ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
                 try
                 {
-                    Game game = new Game(_bots, false);
+                    Game game = new Game(_bots, true); // TODO eh
                     game.PlayGame(handCount);
                 }
                 catch (Exception e)
