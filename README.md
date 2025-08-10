@@ -399,7 +399,7 @@ Your bot should send this message in response to a `request_action` message from
 ```json
 {
     "command": "take_action",
-"action": "call" | "raise" | "fold",
+"action_type": "call" | "raise" | "fold",
 "raise_amount": RAISE_AMOUNT
 }
 ```
