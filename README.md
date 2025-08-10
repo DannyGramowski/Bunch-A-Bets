@@ -285,7 +285,7 @@ The server will send this message to your bot when it is your turn to play. You 
     "id": BOT_ID, // this is the server’s id for the bot, guaranteed to be unique
 "name": BOT_NAME, // this is the bot’s chosen name
 "hand": [CARD, CARD] | [], // this is the bot’s hand. Only your player’s is revealed before the showdown
-"State": ROUND_STATE, // this is the current state of the bot. Folded // if they haven’t acted this round, otherwise it is the action they // did. "not_played" | "folded" | "called" | "raised" | "all_in"
+"state": ROUND_STATE, // this is the current state of the bot. Folded // if they haven’t acted this round, otherwise it is the action they // did. "not_played" | "folded" | "called" | "raised" | "all_in"
 "round_bet": POT_VALUE, // this is the number of the chips the bot has bet so far this round
 "hand_bet": TOTAL_BET, // the total amount this bot has bet in the current hand
 "bank": BANK // the total number of chips the bot has remaining
