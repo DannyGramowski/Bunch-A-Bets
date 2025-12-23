@@ -1,6 +1,6 @@
 # Tournament Rules
 
-Howdy Partner! Welcome to the **Quick Draw Circuit**. Contestants will submit bots of their own creation to play Texas Hold'em Poker against other submitted bots. This document details the tournament structure, submission instructions, tournament rules, and the API for designing, connecting, and running your bot. The tournament will be held on **Friday, 8/22/25**, and for those who are in Rochester we will host all participants for a party at **115 Westmoreland Drive** (rides provided). If you are unable to be there in person (loser), the event will also be available through a Youtube Live.
+Howdy Partner! Welcome to the **Quick Draw Circuit**. Contestants will submit bots of their own creation to play Texas Hold'em Poker against other submitted bots. This document details the tournament structure, submission instructions, tournament rules, and the API for designing, connecting, and running your bot. The tournament will be held on **Friday, 1/23/26**, and for those who are in Rochester we will host all participants for a party at **115 Westmoreland Drive** (rides provided). If you are unable to be there in person (loser), the event will also be available through a Youtube Live.
 
 The spirit of this friendly competition is to write your own algorithm for playing poker. We ask that you play to all the rules listed below, and don’t try to find loopholes or ways to get around the stated rules just to make the best bot. Remember to have fun! 
 
@@ -8,9 +8,9 @@ The spirit of this friendly competition is to write your own algorithm for playi
 
 There is a $5 buy in for every bot submission and each player is allowed to submit up to 3 bots.
 
-We will be using GitHub Classroom for everyone to submit their code. **CODE IS DUE BY AUGUST 13th**. If you want to submit multiple bots, they must all be in the same assignment but different folders. We will download and test everyone’s code over the following week. If we find issues with your code, we will reach out and you can submit an updated version. After the tournament, all bots will be open sourced.
+We will be using GitHub Classroom for everyone to submit their code. **CODE IS DUE BY JANUARY 19th**. If you want to submit multiple bots, they must all be in the same assignment but different folders. We will download and test everyone’s code over the following week. If we find issues with your code, we will reach out and you can submit an updated version. After the tournament, all bots will be open sourced.
 
-You must Venmo $5 per bot by August 13th when code is due. Please send the money to @Daniel-Gramowski on Venmo with a funny message related to the tournament. Non-funny messages will be returned to the sender. The last 4 digits of my phone number are 3207.
+You must Venmo $5 per bot by January 19th when code is due. Please send the money to @Daniel-Gramowski on Venmo with a funny message related to the tournament. Non-funny messages will be returned to the sender. The last 4 digits of my phone number are 3207.
 
 ### Required Files
 
@@ -48,6 +48,8 @@ Sound Effect (any filename)
 A sound effect will also play when you win a hand. This optional file must be a .wav or .mp3, and must be no longer than 5 seconds.
 
 ## Tournament Structure
+
+> NOTE: Tournament structure may change depending on the number of players.
 
 The tournament will be broken up into 2 stages: The Trials, and High Noon.
 
