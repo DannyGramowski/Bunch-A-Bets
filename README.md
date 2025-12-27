@@ -1,6 +1,6 @@
 # Tournament Rules
 
-Howdy Partner! Welcome to the **Quick Draw Circuit**. Contestants will submit bots of their own creation to play Texas Hold'em Poker against other submitted bots. This document details the tournament structure, submission instructions, tournament rules, and the API for designing, connecting, and running your bot. The tournament will be held on **Friday, 1/23/26**, and for those who are in Rochester we will host all participants for a party at **115 Westmoreland Drive** (rides provided). If you are unable to be there in person (loser), the event will also be available through a Youtube Live.
+Howdy Partner! Welcome to the **Duel of the Deuces**. Contestants will submit bots of their own creation to play Texas Hold'em Poker against other submitted bots. This document details the tournament structure, submission instructions, tournament rules, and the API for designing, connecting, and running your bot. The tournament will be held on **Friday, 1/23/26**, and for those who are in Rochester we will host all participants for a party at **115 Westmoreland Drive** (rides provided). If you are unable to be there in person (loser), the event will also be available through a Youtube Live.
 
 The spirit of this friendly competition is to write your own algorithm for playing poker. We ask that you play to all the rules listed below, and don’t try to find loopholes or ways to get around the stated rules just to make the best bot. Remember to have fun! 
 
@@ -186,14 +186,14 @@ This endpoint returns a JSON response in the following format:
 
 ```json
 {
-"port_number": PORT_NUMBER,
-"bot_id": BOT_ID
+"portNumber": PORT_NUMBER,
+"id": BOT_ID
 }
 ```
 
-`port_number` (int): This exact port number must be used when you connect to the server via a socket. See [Connecting to the Server](#connecting-to-the-server). 
+`portNumber` (int): This exact port number must be used when you connect to the server via a socket. See [Connecting to the Server](#connecting-to-the-server). 
 
-`bot_id` (int): This will be the ID your bot was assigned during tournament registration (internal to the server). This will be the same ID that shows up in Gameplay messages.
+`id` (int): This will be the ID your bot was assigned during tournament registration (internal to the server). This will be the same ID that shows up in Gameplay messages.
 
 
 ## Developing a Bot
@@ -251,7 +251,7 @@ The server will send this message to your bot when it is your turn to play. You 
 {
 "command": "request_action",
 "hand": [CARD, CARD],
-"community_cards": [CARD, ...],
+"center_cards": [CARD, ...],
 "game_number": GAME_NUMBER,
 "hand_number": HAND_NUMBER,
 "round_number": ROUND_NUMBER,
@@ -272,7 +272,7 @@ The server will send this message to your bot when it is your turn to play. You 
 }
 ```
 
-`community_cards` (list[Card]): A list of cards that represents the cards publicly available at the table. This list changes size depending on the round number.
+`center_cards` (list[Card]): A list of cards that represents the cards publicly available at the table. This list changes size depending on the round number.
 
 `game_number` (int): The index of the game within the tournament
 
@@ -338,7 +338,8 @@ The server will send this message to your bot during the showdown of each hand, 
 "game_number": GAME_NUMBER,
 "hand_number": HAND_NUMBER,
 "players": [PLAYER, ...],
-"pots": [POT, ...]
+"pots": [POT, ...],
+"center_cards", [CARD, ...]
 }
 ```
 
@@ -358,6 +359,8 @@ The server will send this message to your bot during the showdown of each hand, 
 "winners": [PLAYER, ...] // the full JSON definition for all Players who split the pot (usually just one)
 }
 ```
+
+`center_cards` (list[Card]): The list of cards in the center row. This is redundant information so you don't have to cache the cards from the take action.
 
 > #### **`receive_chat`**
 
