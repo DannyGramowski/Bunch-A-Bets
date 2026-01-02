@@ -8,7 +8,7 @@ The spirit of this friendly competition is to write your own algorithm for playi
 
 There is a $5 buy in for every bot submission and each player is allowed to submit up to 3 bots.
 
-We will be using [GitHub Classroom](https://classroom.github.com/classrooms/212967822-dual-of-the-deuces/assignments/duel-of-the-deuces) for everyone to submit their code. **CODE IS DUE BY JANUARY 19th**. If you want to submit multiple bots, they must all be in the same assignment but different folders. We will download and test everyone’s code over the following week. If we find issues with your code, we will reach out and you can submit an updated version. After the tournament, all bots will be open sourced.
+We will be using [GitHub Classroom](https://classroom.github.com/a/7njYYtJj) for everyone to submit their code. **CODE IS DUE BY JANUARY 19th**. If you want to submit multiple bots, they must all be in the same assignment but different folders. We will download and test everyone’s code over the following week. If we find issues with your code, we will reach out and you can submit an updated version. After the tournament, all bots will be open sourced.
 
 You must Venmo $5 per bot by January 19th when code is due. Please send the money to @Daniel-Gramowski on Venmo with a funny message related to the tournament. Non-funny messages will be returned to the sender. The last 4 digits of my phone number are 3207.
 
